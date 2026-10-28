@@ -1,4 +1,4 @@
-// bundle rebuild 20261028-144537
+// bundle rebuild 20261028-144949
 export default async function handler(req) {
   const json = (obj, status = 200) => new Response(JSON.stringify(obj), {
     status,
@@ -6,8 +6,8 @@ export default async function handler(req) {
   });
   if (req.method === 'GET') {
     const token = new URL(req.url).searchParams.get('token');
-    if (!process.env.LEADS_TOKEN) return json({ ok: false, error: 'LEADS_TOKEN not set' }, 404);
-    if (token !== process.env.LEADS_TOKEN) return json({ ok: false, error: 'bad token' }, 403);
+    if (!process.env.LEADS_TOKEN) return json({ ok: false, error: 'LEADS_TOKEN not set [v2 2026-10-28]' }, 404);
+    if (token !== process.env.LEADS_TOKEN) return json({ ok: false, error: 'bad token [v2 2026-10-28]' }, 403);
     return json({ ok: false, error: 'Netlify deploy has no KV: check Forms panel or group bot' }, 501);
   }
   if (req.method !== 'POST') return json({ ok: false, error: 'method not allowed' }, 405);
@@ -52,6 +52,7 @@ export default async function handler(req) {
   if (!stored.length) return json({ ok: false, error: 'submit failed, please email us directly' }, 502);
   return json({ ok: true, stored, failed, email: rec.email });
 }
+
 
 
 
