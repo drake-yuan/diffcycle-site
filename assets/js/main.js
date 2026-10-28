@@ -221,6 +221,7 @@
 (function () {
   var el = document.getElementById('footContact');
   if (!el) return;
+  if (window.location.protocol === 'file:') return;
   fetch('/api/contact', { headers: { 'Accept': 'application/json' } })
     .then(function (r) { return r.ok ? r.json() : null; })
     .then(function (d) { if (d && d.ok && d.email) el.textContent = '联系：' + d.email; })
