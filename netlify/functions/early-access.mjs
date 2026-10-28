@@ -1,4 +1,4 @@
-// bundle rebuild 20261028-131931
+// bundle rebuild 20261028-144537
 export default async function handler(req) {
   const json = (obj, status = 200) => new Response(JSON.stringify(obj), {
     status,
@@ -52,3 +52,6 @@ export default async function handler(req) {
   if (!stored.length) return json({ ok: false, error: 'submit failed, please email us directly' }, 502);
   return json({ ok: true, stored, failed, email: rec.email });
 }
+
+
+
