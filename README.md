@@ -49,6 +49,6 @@ Worker 需要在 Cloudflare Pages 后台配置：
 查看已登记的线索（把 `<token>` 换成你自己的 `LEADS_TOKEN`）：
 
 ```
-GET /api/leads?token=<token>          # JSON
-GET /api/leads?token=<token>&format=csv   # CSV
+GET /api/early-access?token=<token>          # JSON
+GET /api/early-access?token=<token>&format=csv   # CSV
 ```
