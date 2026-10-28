@@ -1,0 +1,723 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=1440">
+<title>DiffStage</title>
+<style>
+  * { box-sizing: border-box; }
+  html, body { margin: 0; width: 1440px; height: 3848px; overflow: hidden; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    background: #ffffff;
+    color: #0e1020;
+    position: relative;
+  }
+  .mono { font-family: "SF Mono", ui-monospace, Menlo, Consolas, monospace; }
+
+  /* ---------- header ---------- */
+  .header {
+    position: absolute; left: 0; top: 0; width: 1440px; height: 69px;
+    background: rgba(255,255,255,0.82);
+    border-bottom: 1px solid #eef0f7;
+  }
+  .nav-wrap {
+    position: absolute; left: 140px; top: 0; width: 1160px; height: 68px;
+  }
+  .logo { position: absolute; left: 24px; top: 19px; width: 126px; height: 30px; }
+  .logo .mark { position: absolute; left: 0; top: 0; width: 30px; height: 30px; }
+  .logo .a {
+    position: absolute; left: 0; top: 0; width: 20px; height: 20px;
+    background: rgba(91,83,255,0.12); border: 1.5px solid #5b53ff; border-radius: 6px;
+  }
+  .logo .b {
+    position: absolute; left: 10px; top: 10px; width: 20px; height: 20px;
+    background: rgba(244,63,94,0.1); border: 1.5px solid #f43f5e; border-radius: 6px;
+  }
+  .logo .x {
+    position: absolute; left: 5px; top: 5px; width: 21px; height: 21px;
+    background: #0e1020; border: 1.5px solid #5b53ff; border-radius: 2px;
+  }
+  .logo .word {
+    position: absolute; left: 38px; top: 3px; font-size: 18px; font-weight: 800;
+    letter-spacing: -0.3px; color: #0e1020; line-height: 24px;
+  }
+  .nav-links {
+    position: absolute; left: 184px; top: 23px; display: flex; gap: 30px;
+    font-size: 15px; font-weight: 550; color: #5b6178; line-height: 22px;
+  }
+  .nav-right { position: absolute; left: 978px; top: 9px; width: 158px; height: 49px; }
+  .nav-docs {
+    position: absolute; left: 0; top: 14px; font-size: 15px; font-weight: 550;
+    color: #5b6178; line-height: 22px;
+  }
+  .btn-primary {
+    position: absolute; left: 46px; top: 0; width: 112px; height: 49px;
+    background: #5b53ff; color: #ffffff; border-radius: 12px;
+    font-size: 15px; font-weight: 650; line-height: 49px; text-align: center;
+    box-shadow: 0 6px 16px rgba(91,83,255,0.28);
+  }
+
+  /* ---------- hero ---------- */
+  .hero {
+    position: absolute; left: 0; top: 69px; width: 1440px; height: 698px;
+    background: linear-gradient(180deg, #f7f6ff 0%, #ffffff 78%);
+  }
+  .hero-wrap { position: absolute; left: 140px; top: 74px; width: 1160px; height: 564px; }
+  .hero-left { position: absolute; left: 24px; top: 0; width: 555px; height: 564px; }
+  .pill {
+    position: absolute; left: 0; top: 0; height: 34px; padding: 0 16px 0 14px;
+    border: 1px solid #d9d4ff; border-radius: 999px; background: #ffffff;
+    display: flex; align-items: center; gap: 9px;
+    font-size: 13px; font-weight: 600; color: #5b6178;
+  }
+  .pill .dot { width: 7px; height: 7px; border-radius: 50%; background: #5b53ff; }
+  h1 {
+    position: absolute; left: 0; top: 52px; width: 555px; margin: 0;
+    font-size: 52px; font-weight: 800; line-height: 55px; letter-spacing: -1.4px;
+    color: #0e1020;
+  }
+  h1 .grad {
+    background: linear-gradient(90deg, #5b53ff 0%, #a99bff 100%);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  .lede {
+    position: absolute; left: 0; top: 236px; width: 555px; margin: 0;
+    font-size: 19px; font-weight: 400; line-height: 29px; color: #5b6178;
+  }
+  .cta-row { position: absolute; left: 0; top: 381px; width: 555px; height: 49px; }
+  .btn-dark {
+    position: absolute; left: 0; top: 0; width: 129px; height: 49px;
+    background: #5b53ff; color: #ffffff; border-radius: 12px;
+    font-size: 15px; font-weight: 650; line-height: 49px; text-align: center;
+    box-shadow: 0 8px 20px rgba(91,83,255,0.3);
+  }
+  .btn-ghost {
+    position: absolute; left: 143px; top: 0; width: 165px; height: 49px;
+    background: #ffffff; color: #0e1020; border: 1px solid #e8eaf3; border-radius: 12px;
+    font-size: 15px; font-weight: 650; line-height: 47px; text-align: center;
+  }
+  .figma-input {
+    position: absolute; left: 0; top: 452px; width: 520px; height: 55px;
+    background: #ffffff; border: 1px solid #e8eaf3; border-radius: 12px;
+    box-shadow: 0 4px 14px rgba(14,16,32,0.04);
+  }
+  .figma-input .ic {
+    position: absolute; left: 13px; top: 15px; font-size: 16px; color: #5b53ff; line-height: 25px;
+  }
+  .figma-input code {
+    position: absolute; left: 36px; top: 17px; font-size: 13px; color: #5b6178;
+    font-family: "SF Mono", ui-monospace, Menlo, Consolas, monospace;
+  }
+  .figma-input .go {
+    position: absolute; left: 396px; top: 11px; width: 111px; height: 33px;
+    background: #f0efff; color: #241a8f; border-radius: 8px;
+    font-size: 13px; font-weight: 700; line-height: 33px; text-align: center;
+    letter-spacing: 0.2px;
+  }
+  .trust { position: absolute; left: 0; top: 541px; width: 555px; height: 23px; }
+  .trust .lbl {
+    position: absolute; left: 0; top: 2px; font-size: 13px; color: #8a90a6; line-height: 20px;
+  }
+  .trust .logos {
+    position: absolute; left: 196px; top: 0; font-size: 15px; font-weight: 800;
+    color: #aab0c4; line-height: 23px;
+  }
+
+  /* hero right card */
+  .diffcard {
+    position: absolute; left: 609px; top: 68px; width: 503px; height: 429px;
+    background: #ffffff; border: 1px solid #e8eaf3; border-radius: 18px;
+    box-shadow: 0 24px 60px rgba(14,16,32,0.1);
+  }
+  .diffcard .top {
+    position: absolute; left: 0; top: 0; width: 501px; height: 47px;
+    border-bottom: 1px solid #eef0f7;
+  }
+  .diffcard .live {
+    position: absolute; left: 16px; top: 13px; display: flex; align-items: center; gap: 7px;
+    font-size: 11px; font-weight: 800; color: #f43f5e; letter-spacing: 0.6px;
+  }
+  .diffcard .live i { width: 8px; height: 8px; border-radius: 50%; background: #f43f5e; }
+  .diffcard .name {
+    position: absolute; left: 103px; top: 13px; font-size: 13px; font-weight: 600;
+    color: #8a90a6; line-height: 20px;
+  }
+  .panes { position: absolute; left: 0; top: 47px; width: 501px; height: 281px; }
+  .pane { position: absolute; top: 0; width: 250px; height: 281px; }
+  .pane.l { left: 0; border-right: 1px solid #eef0f7; }
+  .pane.r { left: 251px; }
+  .tag {
+    position: absolute; left: 16px; top: 16px; width: 218px; height: 17px;
+    font-size: 11px; font-weight: 700; color: #8a90a6; line-height: 17px;
+    letter-spacing: 0.4px;
+  }
+  .tag .right { position: absolute; right: 0; top: 0; }
+  .mock {
+    position: absolute; left: 16px; top: 43px; width: 218px; height: 220px;
+    background: #f5f6fb; border: 1px solid #eef0f7; border-radius: 10px;
+  }
+  .mock .ttl {
+    position: absolute; left: 17px; top: 17px; font-size: 13px; font-weight: 700;
+    color: #0e1020; line-height: 20px;
+  }
+  .mock .row { position: absolute; left: 17px; height: 9px; background: #dfe2ef; border-radius: 5px; }
+  .mock .row.r1 { top: 47px; width: 184px; }
+  .mock .row.r2 { top: 64px; width: 111px; }
+  .mock .card {
+    position: absolute; left: 17px; top: 87px; width: 184px; height: 115px;
+    background: #ffffff; border: 1px solid #eef0f7; border-radius: 9px;
+  }
+  .mock .card .t {
+    position: absolute; left: 14px; top: 14px; font-size: 12px; font-weight: 700;
+    color: #0e1020; line-height: 19px;
+  }
+  .mock .card .p {
+    position: absolute; left: 14px; top: 38px; font-size: 11px; color: #8a90a6; line-height: 16px;
+  }
+  .mock .card .bu {
+    position: absolute; left: 14px; top: 65px; width: 94px; height: 37px;
+    background: #5b53ff; color: #ffffff; border-radius: 8px;
+    font-size: 12px; font-weight: 700; line-height: 37px; text-align: center;
+  }
+  .pane.r .mock .card .bu {
+    left: 24px; top: 71px; width: 96px; height: 39px;
+    background: #ffffff; color: #241a8f; border: 1.5px solid #f43f5e;
+    line-height: 36px;
+  }
+  .flag {
+    position: absolute; left: 374px; top: 235px; width: 109px; height: 27px;
+    background: #ffffff; border: 1px solid #ffd5dd; border-radius: 7px;
+    font-family: "SF Mono", ui-monospace, Menlo, Consolas, monospace;
+    font-size: 11px; font-weight: 900; color: #f43f5e; line-height: 25px; text-align: center;
+    box-shadow: 0 4px 10px rgba(244,63,94,0.12);
+  }
+  .strip {
+    position: absolute; left: 0; top: 329px; width: 501px; height: 44px;
+    background: #fcfcff; border-top: 1px solid #eef0f7; border-bottom: 1px solid #eef0f7;
+  }
+  .strip .label {
+    position: absolute; left: 16px; top: 13px; font-size: 11px; font-weight: 700;
+    color: #8a90a6; line-height: 17px;
+  }
+  .strip .bar {
+    position: absolute; left: 88px; top: 18px; width: 365px; height: 8px;
+    background: #eef0f7; border-radius: 6px; overflow: hidden;
+  }
+  .strip .bar span {
+    position: absolute; left: 0; top: 0; height: 8px; width: 80px;
+    background: linear-gradient(90deg, #f43f5e, #ff8a9c); border-radius: 6px;
+  }
+  .strip .pct {
+    position: absolute; left: 465px; top: 13px; font-size: 12px; font-weight: 700;
+    color: #f43f5e; line-height: 19px;
+    font-family: "SF Mono", ui-monospace, Menlo, Consolas, monospace;
+  }
+  .status {
+    position: absolute; left: 0; top: 373px; width: 501px; height: 56px;
+    border-top: 1px solid #eef0f7;
+  }
+  .status .badge {
+    position: absolute; top: 13px; height: 31px; padding: 0 10px; border-radius: 8px;
+    font-size: 12px; font-weight: 700; line-height: 31px;
+  }
+  .status .b1 { left: 16px; color: #f43f5e; background: #fff1f4; }
+  .status .b2 { left: 130px; color: #8a90a6; background: #f5f6fb; }
+  .status .b3 { left: 224px; color: #8a90a6; background: #f5f6fb; }
+  .status .b4 { left: 350px; color: #12b76a; background: #eafaf1; }
+
+  /* ---------- stats ---------- */
+  .stats {
+    position: absolute; left: 0; top: 767px; width: 1440px; height: 135px;
+    background: #f5f6fb; border-top: 1px solid #eef0f7; border-bottom: 1px solid #eef0f7;
+  }
+  .stats .wrap { position: absolute; left: 140px; top: 31px; width: 1160px; height: 73px; }
+  .stat { position: absolute; top: 0; width: 260px; height: 73px; }
+  .stat:nth-child(1) { left: 24px; }
+  .stat:nth-child(2) { left: 308px; }
+  .stat:nth-child(3) { left: 592px; }
+  .stat:nth-child(4) { left: 876px; }
+  .stat .n {
+    font-size: 32px; font-weight: 800; line-height: 50px; color: #241a8f;
+    letter-spacing: -0.5px;
+  }
+  .stat .l { font-size: 14px; color: #5b6178; line-height: 21px; }
+
+  /* ---------- generic section ---------- */
+  .section { position: absolute; left: 0; width: 1440px; }
+  .sec-wrap { position: absolute; left: 140px; width: 1160px; }
+  .eyebrow {
+    font-size: 13px; font-weight: 800; line-height: 20px; letter-spacing: 0.8px;
+    text-transform: uppercase; color: #5b53ff;
+  }
+  .sec-title {
+    margin: 0; font-size: 36px; font-weight: 800; line-height: 40px;
+    letter-spacing: -0.8px; color: #0e1020;
+  }
+  .sec-sub {
+    margin: 0; font-size: 17px; font-weight: 400; line-height: 26px; color: #5b6178;
+  }
+
+  /* features */
+  .features { top: 902px; height: 862px; }
+  .features .sec-wrap { top: 84px; height: 694px; }
+  .features .eyebrow { position: absolute; left: 24px; top: 4px; }
+  .features .sec-title { position: absolute; left: 24px; top: 37px; width: 680px; }
+  .features .sec-sub { position: absolute; left: 24px; top: 131px; width: 640px; }
+  .feat-grid {
+    position: absolute; left: 24px; top: 228px; width: 1112px; height: 466px;
+  }
+  .feat {
+    position: absolute; width: 357px; height: 223px;
+    background: #ffffff; border: 1px solid #e8eaf3; border-radius: 18px;
+    box-shadow: 0 2px 10px rgba(14,16,32,0.03);
+  }
+  .feat .ic {
+    position: absolute; left: 27px; top: 29px; width: 46px; height: 46px;
+    background: #f0efff; border-radius: 12px; color: #241a8f;
+    font-size: 20px; line-height: 46px; text-align: center;
+  }
+  .feat h3 {
+    position: absolute; left: 27px; top: 91px; width: 303px; margin: 0;
+    font-size: 19px; font-weight: 700; line-height: 29px; color: #0e1020;
+  }
+  .feat p {
+    position: absolute; left: 27px; top: 129px; width: 303px; margin: 0;
+    font-size: 15px; font-weight: 400; line-height: 22px; color: #5b6178;
+  }
+
+  /* how it works */
+  .how { top: 1764px; height: 633px; background: #0e1020; }
+  .how .sec-wrap { top: 84px; height: 465px; }
+  .how .eyebrow { position: absolute; left: 24px; top: 4px; color: #a99bff; }
+  .how .sec-title { position: absolute; left: 24px; top: 37px; width: 680px; color: #ffffff; }
+  .how .sec-sub { position: absolute; left: 24px; top: 131px; width: 640px; color: #aab0c8; }
+  .steps { position: absolute; left: 24px; top: 230px; width: 1112px; height: 234px; }
+  .step {
+    position: absolute; top: 0; width: 356px; height: 234px;
+    background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 18px;
+  }
+  .step:nth-child(1) { left: 0; }
+  .step:nth-child(2) { left: 378px; }
+  .step:nth-child(3) { left: 756px; }
+  .step .num {
+    position: absolute; left: 27px; top: 27px; font-size: 13px; font-weight: 700;
+    color: #a99bff; line-height: 20px;
+    font-family: "SF Mono", ui-monospace, Menlo, Consolas, monospace;
+  }
+  .step h3 {
+    position: absolute; left: 27px; top: 73px; width: 302px; margin: 0;
+    font-size: 19px; font-weight: 700; line-height: 29px; color: #ffffff;
+  }
+  .step p {
+    position: absolute; left: 27px; top: 110px; width: 302px; margin: 0;
+    font-size: 15px; font-weight: 400; line-height: 22px; color: #aab0c8;
+  }
+  .step:nth-child(2) p { top: 140px; }
+  .step .arrow {
+    position: absolute; left: 352px; top: 43px; font-size: 22px; color: #5b6178;
+    line-height: 34px;
+  }
+
+  /* use cases */
+  .usecases { top: 2396px; height: 651px; }
+  .usecases .sec-wrap { top: 84px; height: 483px; }
+  .usecases .eyebrow { position: absolute; left: 24px; top: 4px; }
+  .usecases .sec-title { position: absolute; left: 24px; top: 37px; width: 680px; }
+  .usecases .sec-sub { position: absolute; left: 24px; top: 91px; width: 640px; }
+  .uc-grid { position: absolute; left: 24px; top: 188px; width: 1112px; height: 296px; }
+  .uc {
+    position: absolute; width: 546px; height: 138px;
+    background: #f5f6fb; border: 1px solid #e8eaf3; border-radius: 18px;
+  }
+  .uc:nth-child(1) { left: 0; top: 0; }
+  .uc:nth-child(2) { left: 566px; top: 0; }
+  .uc:nth-child(3) { left: 0; top: 158px; }
+  .uc:nth-child(4) { left: 566px; top: 158px; }
+  .uc .ic {
+    position: absolute; left: 29px; top: 29px; width: 46px; height: 46px;
+    background: #ffffff; border: 1px solid #e8eaf3; border-radius: 12px;
+    color: #5b53ff; font-size: 20px; line-height: 44px; text-align: center;
+  }
+  .uc .txt {
+    position: absolute; left: 93px; top: 29px; width: 424px; height: 80px;
+  }
+  .uc h3 {
+    position: absolute; left: 0; top: 0; width: 424px; margin: 0;
+    font-size: 18px; font-weight: 700; line-height: 28px; color: #0e1020;
+  }
+  .uc p {
+    position: absolute; left: 0; top: 35px; width: 424px; margin: 0;
+    font-size: 15px; font-weight: 400; line-height: 22px; color: #5b6178;
+  }
+
+  /* cta */
+  .cta { top: 3048px; height: 383px; }
+  .cta .sec-wrap { top: 84px; height: 215px; }
+  .cta .box {
+    position: absolute; left: 24px; top: 0; width: 1112px; height: 215px;
+    background: linear-gradient(100deg, #5b53ff 0%, #7b5cff 45%, #a06bff 100%);
+    border-radius: 26px; box-shadow: 0 24px 60px rgba(91,83,255,0.35);
+  }
+  .cta .txt {
+    position: absolute; left: 48px; top: 58px; width: 492px; height: 99px;
+  }
+  .cta h2 {
+    position: absolute; left: 0; top: 0; width: 492px; margin: 0;
+    font-size: 34px; font-weight: 800; line-height: 37px; color: #ffffff;
+    letter-spacing: -0.6px; white-space: nowrap;
+  }
+  .cta p {
+    position: absolute; left: 0; top: 49px; width: 460px; margin: 0;
+    font-size: 16px; font-weight: 400; line-height: 25px; color: rgba(255,255,255,0.85);
+  }
+  .cta .actions { position: absolute; left: 801px; top: 83px; width: 263px; height: 49px; }
+  .cta .btn-white {
+    position: absolute; left: 0; top: 0; width: 112px; height: 49px;
+    background: #ffffff; color: #241a8f; border-radius: 12px;
+    font-size: 15px; font-weight: 650; line-height: 49px; text-align: center;
+  }
+  .cta .btn-outline {
+    position: absolute; left: 124px; top: 0; width: 139px; height: 49px;
+    background: rgba(255,255,255,0.14); color: #ffffff; border-radius: 12px;
+    border: 1px solid rgba(255,255,255,0.4);
+    font-size: 15px; font-weight: 650; line-height: 47px; text-align: center;
+  }
+
+  /* footer */
+  .footer {
+    position: absolute; left: 0; top: 3515px; width: 1440px; height: 333px;
+    background: #0e1020;
+  }
+  .footer .wrap { position: absolute; left: 140px; top: 56px; width: 1160px; height: 247px; }
+  .foot-grid { position: absolute; left: 24px; top: 0; width: 1112px; height: 162px; }
+  .foot-col { position: absolute; top: 0; height: 162px; }
+  .foot-col.c1 { left: 0; width: 325px; }
+  .foot-col.c2 { left: 355px; width: 232px; }
+  .foot-col.c3 { left: 617px; width: 232px; }
+  .foot-col.c4 { left: 880px; width: 232px; }
+  .foot-logo { position: absolute; left: 0; top: 0; width: 325px; height: 30px; }
+  .foot-logo .mark { position: absolute; left: 0; top: 0; width: 30px; height: 30px; }
+  .foot-logo .a {
+    position: absolute; left: 0; top: 0; width: 20px; height: 20px;
+    background: rgba(91,83,255,0.2); border: 1.5px solid #5b53ff; border-radius: 6px;
+  }
+  .foot-logo .b {
+    position: absolute; left: 10px; top: 10px; width: 20px; height: 20px;
+    background: rgba(244,63,94,0.15); border: 1.5px solid #f43f5e; border-radius: 6px;
+  }
+  .foot-logo .x {
+    position: absolute; left: 5px; top: 5px; width: 21px; height: 21px;
+    background: #0e1020; border: 1.5px solid #5b53ff; border-radius: 2px;
+  }
+  .foot-logo .word {
+    position: absolute; left: 38px; top: 3px; font-size: 18px; font-weight: 800;
+    color: #ffffff; line-height: 24px; letter-spacing: -0.3px;
+  }
+  .foot-blurb {
+    position: absolute; left: 0; top: 44px; width: 280px; margin: 0;
+    font-size: 14px; font-weight: 400; line-height: 22px; color: #8b91ad;
+  }
+  .foot-col h4 {
+    margin: 0; font-size: 14px; font-weight: 700; line-height: 21px; color: #ffffff;
+  }
+  .foot-col ul {
+    position: absolute; left: 0; top: 35px; margin: 0; padding: 0; list-style: none;
+    width: 232px;
+  }
+  .foot-col li {
+    height: 22px; margin-bottom: 10px; font-size: 14px; line-height: 22px; color: #aab0c8;
+  }
+  .foot-bottom {
+    position: absolute; left: 24px; top: 203px; width: 1112px; height: 43px;
+    border-top: 1px solid rgba(255,255,255,0.1);
+  }
+  .foot-bottom .copy {
+    position: absolute; left: 0; top: 23px; font-size: 13px; color: #8b91ad; line-height: 20px;
+  }
+  .foot-bottom .mono {
+    position: absolute; right: 0; top: 23px; font-size: 13px; color: #8b91ad; line-height: 20px;
+  }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="nav-wrap">
+    <div class="logo">
+      <div class="mark">
+        <div class="a"></div>
+        <div class="b"></div>
+        <div class="x"></div>
+      </div>
+      <div class="word">DiffStage</div>
+    </div>
+    <div class="nav-links">
+      <span>Product</span><span>Features</span><span>How it works</span><span>Use cases</span><span>Pricing</span>
+    </div>
+    <div class="nav-right">
+      <div class="nav-docs">Docs</div>
+      <div class="btn-primary">Start free</div>
+    </div>
+  </div>
+</div>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-wrap">
+    <div class="hero-left">
+      <div class="pill"><span class="dot"></span>Visual diff engine for AI coding agents</div>
+      <h1>Ship UI that matches<br>the design.<br><span class="grad">Pixel for pixel.</span></h1>
+      <p class="lede">DiffStage turns your Figma link into a visual ground truth, then drives your AI agent to generate, verify, and fix frontend code until the rendered result is identical — no more eyeballing, no more manual CSS tweaks.</p>
+      <div class="cta-row">
+        <div class="btn-dark">Start free →</div>
+        <div class="btn-ghost">See how it works</div>
+      </div>
+      <div class="figma-input">
+        <span class="ic">◆</span>
+        <code>figma.com/design/⋯/Checkout?node-id=12-34</code>
+        <span class="go">SET AS TRUTH</span>
+      </div>
+      <div class="trust">
+        <span class="lbl">Trusted by teams shipping with</span>
+        <span class="logos">Cursor · Claude Code · Codex · Windsurf</span>
+      </div>
+    </div>
+
+    <div class="diffcard">
+      <div class="top">
+        <div class="live"><i></i>LIVE DIFF</div>
+        <div class="name">CheckoutPage · 2 snapshots</div>
+      </div>
+      <div class="panes">
+        <div class="pane l">
+          <div class="tag">Baseline · Figma<span class="right">#12-34</span></div>
+          <div class="mock">
+            <div class="ttl">Sunrise Mug</div>
+            <div class="row r1"></div>
+            <div class="row r2"></div>
+            <div class="card">
+              <div class="t">$24.00 · Stoneware</div>
+              <div class="p">12oz · 4.9 ★</div>
+              <div class="bu">Add to cart</div>
+            </div>
+          </div>
+        </div>
+        <div class="pane r">
+          <div class="tag">Current · Browser<span class="right">run #4821</span></div>
+          <div class="mock">
+            <div class="ttl">Sunrise Mug</div>
+            <div class="row r1"></div>
+            <div class="row r2"></div>
+            <div class="card">
+              <div class="t">$24.00 · Stoneware</div>
+              <div class="p">12oz · 4.9 ★</div>
+              <div class="bu">Add to cart</div>
+            </div>
+          </div>
+          <div class="flag">spacing +12px</div>
+        </div>
+      </div>
+      <div class="strip">
+        <span class="label">Pixel diff</span>
+        <div class="bar"><span></span></div>
+        <span class="pct">22%</span>
+      </div>
+      <div class="status">
+        <span class="badge b1">● 1 regression</span>
+        <span class="badge b2">0 intended</span>
+        <span class="badge b3">0 flake</span>
+        <span class="badge b4">✓ Auto-fixed → 0px</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- STATS -->
+<div class="stats">
+  <div class="wrap">
+    <div class="stat"><div class="n">↓ 90%</div><div class="l">manual CSS fixes</div></div>
+    <div class="stat"><div class="n">0px</div><div class="l">target visual diff</div></div>
+    <div class="stat"><div class="n">3×</div><div class="l">faster design handoff</div></div>
+    <div class="stat"><div class="n">12+</div><div class="l">frontend frameworks</div></div>
+  </div>
+</div>
+
+<!-- FEATURES -->
+<div class="section features">
+  <div class="sec-wrap">
+    <div class="eyebrow">Core capabilities</div>
+    <h2 class="sec-title">Everything you need to close the design-to-code gap</h2>
+    <p class="sec-sub">DiffStage sits between your Figma file and your codebase, comparing what was designed to what actually renders — then closing the loop automatically.</p>
+    <div class="feat-grid">
+      <div class="feat" style="left:0;top:0;">
+        <div class="ic">⊡</div>
+        <h3>Pixel-level diff</h3>
+        <p>Compare rendered screens against the design reference pixel-by-pixel, with computed-style checks for spacing, fonts, colors, and layout.</p>
+      </div>
+      <div class="feat" style="left:377px;top:0;">
+        <div class="ic">⟳</div>
+        <h3>Closed-loop AI fix</h3>
+        <p>An agent writes code, screenshots the result, and iterates on the exact CSS errors until the visual diff reaches zero.</p>
+      </div>
+      <div class="feat" style="left:755px;top:0;">
+        <div class="ic">◆</div>
+        <h3>Figma as ground truth</h3>
+        <p>Paste a Figma link and DiffStage parses layout constraints, tokens, and assets to build a definitive visual benchmark.</p>
+      </div>
+      <div class="feat" style="left:0;top:243px;">
+        <div class="ic">⚖</div>
+        <h3>AI verdict, not noise</h3>
+        <p>Each change is labeled intended, regression, or flake with reasoning — so you review decisions, not walls of diffs.</p>
+      </div>
+      <div class="feat" style="left:377px;top:243px;">
+        <div class="ic">⎇</div>
+        <h3>CI &amp; PR integration</h3>
+        <p>Posts a check and a comment on every pull request. Your agent accepts or denies changes over MCP and fixes regressions.</p>
+      </div>
+      <div class="feat" style="left:755px;top:243px;">
+        <div class="ic">▦</div>
+        <h3>Framework agnostic</h3>
+        <p>React, Vue, Svelte, or vanilla HTML/CSS — verified code drops into your existing project, your stack stays yours.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- HOW IT WORKS -->
+<div class="section how">
+  <div class="sec-wrap">
+    <div class="eyebrow">How it works</div>
+    <h2 class="sec-title">From Figma link to shipped, pixel-perfect UI</h2>
+    <p class="sec-sub">Three steps, fully automated. DiffStage runs the verify-fix loop so your agent ships what was designed.</p>
+    <div class="steps">
+      <div class="step">
+        <div class="num">01</div>
+        <h3>Paste your Figma link</h3>
+        <p>Point DiffStage at a frame or component. It becomes the immutable visual baseline for every future change.</p>
+        <div class="arrow">→</div>
+      </div>
+      <div class="step">
+        <div class="num">02</div>
+        <h3>Agent generates &amp; DiffStage captures</h3>
+        <p>Your coding agent produces the UI; DiffStage screenshots the real browser render and pins fonts, timers, and async data.</p>
+        <div class="arrow">→</div>
+      </div>
+      <div class="step">
+        <div class="num">03</div>
+        <h3>Verify &amp; auto-fix to 0px</h3>
+        <p>The AI judge separates real regressions from noise and drives the agent to fix the code until the diff is zero.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- USE CASES -->
+<div class="section usecases">
+  <div class="sec-wrap">
+    <div class="eyebrow">Use cases</div>
+    <h2 class="sec-title">One engine, every visual handoff</h2>
+    <p class="sec-sub">Whether you are generating from scratch or guarding an existing UI, DiffStage keeps the shipped result faithful to the design.</p>
+    <div class="uc-grid">
+      <div class="uc">
+        <div class="ic">✦</div>
+        <div class="txt">
+          <h3>Design-to-code generation</h3>
+          <p>Turn a Figma frame into high-fidelity, production-ready frontend code with 1:1 visual parity — no "close enough" handoffs.</p>
+        </div>
+      </div>
+      <div class="uc">
+        <div class="ic">⚑</div>
+        <div class="txt">
+          <h3>Visual regression in CI</h3>
+          <p>Catch spacing, color, and layout drifts before they merge. Block the PR on real regressions, ignore the flakes.</p>
+        </div>
+      </div>
+      <div class="uc">
+        <div class="ic">▤</div>
+        <div class="txt">
+          <h3>Design-system rollout</h3>
+          <p>Convert a Figma design system into a code library with exact tokens, spacing, and component geometry across the app.</p>
+        </div>
+      </div>
+      <div class="uc">
+        <div class="ic">⇄</div>
+        <div class="txt">
+          <h3>Legacy UI migration</h3>
+          <p>Rebuild old components in a modern framework while guaranteeing they look identical to the original design specs.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CTA -->
+<div class="section cta">
+  <div class="sec-wrap">
+    <div class="box">
+      <div class="txt">
+        <h2>Stop shipping close-enough UI.</h2>
+        <p>Give your AI agent a visual ground truth and let DiffStage close the loop to pixel-perfect. Free during early access.</p>
+      </div>
+      <div class="actions">
+        <div class="btn-white">Start free</div>
+        <div class="btn-outline">Book a demo</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<div class="footer">
+  <div class="wrap">
+    <div class="foot-grid">
+      <div class="foot-col c1">
+        <div class="foot-logo">
+          <div class="mark">
+            <div class="a"></div>
+            <div class="b"></div>
+            <div class="x"></div>
+          </div>
+          <div class="word">DiffStage</div>
+        </div>
+        <p class="foot-blurb">The visual verification layer for AI coding agents. What was designed is exactly what ships.</p>
+      </div>
+      <div class="foot-col c2">
+        <h4>Product</h4>
+        <ul>
+          <li>Features</li>
+          <li>How it works</li>
+          <li>Use cases</li>
+          <li>Pricing</li>
+        </ul>
+      </div>
+      <div class="foot-col c3">
+        <h4>Resources</h4>
+        <ul>
+          <li>Documentation</li>
+          <li>MCP server</li>
+          <li>Changelog</li>
+          <li>API reference</li>
+        </ul>
+      </div>
+      <div class="foot-col c4">
+        <h4>Company</h4>
+        <ul>
+          <li>About</li>
+          <li>Blog</li>
+          <li>Careers</li>
+          <li>Contact</li>
+        </ul>
+      </div>
+    </div>
+    <div class="foot-bottom">
+      <span class="copy">© 2026 DiffStage, Inc. All rights reserved.</span>
+      <span class="mono">built for AI coding agents · v1.0</span>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

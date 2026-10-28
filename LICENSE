@@ -1,0 +1,5 @@
+Copyright (c) 2026 DiffCycle. All rights reserved.
+
+本仓库仅包含 DiffCycle 官网的构建产物（HTML / CSS / JS / 静态资源）。
+DiffCycle 引擎本身的源码、模型提示词、运行数据与任何凭据均未包含在本仓库中，
+其著作权归 DiffCycle 所有，未经许可不得复制或再分发。
