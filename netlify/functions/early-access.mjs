@@ -1,3 +1,4 @@
+// bundle rebuild 20261028-131931
 export default async function handler(req) {
   const json = (obj, status = 200) => new Response(JSON.stringify(obj), {
     status,
