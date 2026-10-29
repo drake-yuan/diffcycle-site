@@ -114,12 +114,7 @@
   var diffPct = document.getElementById('diffPct');
   var diffBar = document.getElementById('diffBar');
   if (diffPct && diffBar && !reduced) {
-    var frames = [
-      { pct: 12.4, wait: 2200 },
-      { pct: 8.1, wait: 1500 },
-      { pct: 3.6, wait: 1500 },
-      { pct: 0.9, wait: 1800 }
-    ];
+    var frames = [{ pct: 15.48, wait: 600000 }];
     var idx = 0;
     function tick() {
       var f = frames[idx % frames.length];
