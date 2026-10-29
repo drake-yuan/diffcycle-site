@@ -159,11 +159,11 @@
               </div>
             </div>
             <div class="diff-meter">
-              <div class="diff-meter-row"><span>差异像素</span><b id="diffPct">15.48%</b></div>
+              <div class="diff-meter-row"><span>严格差异占比</span><b id="diffPct">15.48%</b></div>
               <div class="diff-bar"><span id="diffBar" style="width:15.48%"></span></div>
               <div class="diff-legend">
                 <span class="chip chip-bad">162 处差异区域</span>
-                <span class="chip chip-warn">未达验收门槛</span>
+                <span class="chip chip-warn">未达 5% 验收线</span>
                 <span class="chip chip-ok">语义归因完成</span>
               </div>
             </div>
@@ -330,9 +330,9 @@
         </div>
 
         <p class="proof-label reveal">上一次运行 · 1440×3848 整版</p>
-        <div class="proof-metrics reveal"><div><b>15.48%</b><span>严格像素差（阈值 0.01）</span></div><div><b>2.58%</b><span>人眼可见差异（阈值 0.2）</span></div><div><b>4.79%</b><span>验收门槛差（阈值 0.05）</span></div><div><b>162</b><span>差异区域（19 新增 / 9 删除 / 134 修改）</span></div></div>
+        <div class="proof-metrics reveal"><div><b>15.48%</b><span>严格差异占比（色差 &gt; 0.01，判定用）</span></div><div><b>2.58%</b><span>人眼可见差异（色差 &gt; 0.2）</span></div><div><b>4.79%</b><span>色差超 0.05 的像素占比</span></div><div><b>162</b><span>差异区域（19 新增 / 9 删除 / 134 修改）</span></div></div>
 
-        <p class="proof-note reveal">同一张首页（1440×3848）逐像素实测：<b>严格像素差 15.48%</b>、<b>人眼可见差异 2.58%</b>、<b>验收门槛差 4.79%</b>，共 <b>162</b> 处差异区域（19 新增 / 9 删除 / 134 修改）。这一轮自动修复<b>没有一轮被采纳</b>，所以我们不宣称「像素级还原」；但语义归因仍然完成 —— 每一处差异都被定位到具体区域与元素。你可以<a href="assets/runs/generated-page.html" target="_blank" rel="noreferrer">直接打开这次生成的页面</a></p>
+        <p class="proof-note reveal"><b>验收线 5%</b>：<b>严格差异占比</b>不高于 5% 才算达标；判定用的是严格口径，不是「色差超 0.05」的占比。同一张首页（1440×3848）逐像素实测：<b>严格差异占比 15.48%</b>、<b>人眼可见差异 2.58%</b>、<b>色差超 0.05 的占比 4.79%</b>，共 <b>162</b> 处差异区域（19 新增 / 9 删除 / 134 修改）。这一轮自动修复<b>没有一轮被采纳</b>，所以我们不宣称「像素级还原」；但语义归因仍然完成 —— 每一处差异都被定位到具体区域与元素。你可以<a href="assets/runs/generated-page.html" target="_blank" rel="noreferrer">直接打开这次生成的页面</a></p>
 
         <figure class="proof-shot reveal">
           <img src="assets/img/workbench.jpg" width="900" height="1672" alt="DiffCycle 本地工作台：左侧设计稿、中间流式代码、右侧真实渲染与像素 Diff" loading="lazy" />
