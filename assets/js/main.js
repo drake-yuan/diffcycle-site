@@ -118,7 +118,7 @@
     var idx = 0;
     function tick() {
       var f = frames[idx % frames.length];
-      diffPct.textContent = f.pct.toFixed(1) + '%';
+      diffPct.textContent = f.pct.toFixed(2) + '%';
       diffBar.style.width = Math.max(f.pct, 0.6) + '%';
       idx++;
       window.setTimeout(tick, f.wait);
