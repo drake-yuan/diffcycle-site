@@ -1,0 +1,590 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>DiffCycle — 让设计稿与代码像素级一致 | 面向 AI 编码代理的视觉校验层</title>
+<meta name="description" content="DiffCycle 连接 Figma 文件与代码库：粘贴 Figma 链接即可读取设计稿、生成可维护代码，并用像素级 Diff 与语义化 AI 修复把渲染结果拉回设计稿，形成一条跑到收敛的差异闭环。以 Figma 为唯一事实来源，可接入 Cursor、Claude Code、Codex、Windsurf，并在 CI / Pull Request 中运行。" />
+<meta name="theme-color" content="#07080C" />
+<meta property="og:title" content="DiffCycle — 让设计稿与代码像素级一致" />
+<meta property="og:description" content="面向 AI 编码代理的视觉校验层：Figma → 代码 → 真实渲染 → 像素级 Diff → 语义化自动修复。" />
+<meta property="og:type" content="website" />
+<meta property="og:image" content="https://diffcycle.pages.dev/assets/img/og.png" />
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="630" />
+<meta name="twitter:card" content="summary_large_image" />
+<link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml" />
+<link rel="stylesheet" href="assets/css/main.css" />
+  <link rel="canonical" href="https://diffcycle.pages.dev/" />
+  <meta property="og:url" content="https://diffcycle.pages.dev/" />
+  <meta name="twitter:image" content="https://diffcycle.pages.dev/assets/img/og.png" />
+</head>
+<body>
+<div class="bg-grid" aria-hidden="true"></div>
+<div class="bg-spot" id="bgSpot" aria-hidden="true"></div>
+<div class="scroll-progress" id="scrollProgress" aria-hidden="true"></div>
+
+<a class="skip-link" href="#main">跳到主要内容</a>
+
+<header class="nav" id="top">
+  <div class="container nav-inner">
+    <a class="brand" href="#top" aria-label="DiffCycle 首页">
+      <span class="mark" aria-hidden="true"><span class="mk-a"></span><span class="mk-b"></span><span class="mk-x"></span></span>
+      <span class="brand-name">DiffCycle</span>
+      <span class="brand-cn" aria-hidden="true">差异闭环</span>
+    </a>
+
+    <nav class="nav-links" id="navLinks" aria-label="主导航">
+      <a href="#capabilities">能力</a>
+      <a href="#showcase">效果</a>
+        <a href="#proof">真实记录</a>
+      <a href="#agent">Agent 接入</a>
+      <a href="#how">工作原理</a>
+      <a href="#cases">场景</a>
+      <a href="#pricing">定价</a>
+    </nav>
+
+    <div class="nav-actions">
+      <span class="nav-quiet">文档<span class="soon">即将上线</span></span>
+      <a class="btn btn-quiet" href="#start">登录</a>
+      <a class="btn btn-primary" href="#start">免费开始</a>
+      <button class="nav-toggle" id="navToggle" type="button" aria-expanded="false" aria-controls="navLinks" aria-label="展开导航菜单">
+        <span></span><span></span>
+      </button>
+    </div>
+  </div>
+</header>
+
+<main id="main">
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="container hero-grid">
+      <div class="hero-copy">
+        <span class="pill reveal"><span class="dot"></span>DiffCycle · 面向 AI 编码代理的视觉校验层</span>
+        <h1 class="reveal">别再交付<span class="grad">「差不多」</span>的界面</h1>
+        <p class="lede reveal">
+          DiffCycle 连接 Figma 文件与代码库。粘贴一个 Figma 链接，它会读取设计稿、生成单文件静态页面（HTML + 内嵌 CSS），
+          再用真实浏览器渲染结果与设计稿做<strong>像素级 Diff</strong>，并用语义化 AI 逐处修复，直到画面回到设计稿。
+          每一次修复都会重新校验，没收敛就再跑一轮——这是一条会自己闭合的<strong>差异闭环</strong>。
+        </p>
+
+        <div class="hero-actions reveal">
+          <a class="btn btn-primary btn-lg" href="#start">免费开始</a>
+          <a class="btn btn-outline btn-lg" href="#how">看它怎么跑一遍</a>
+        </div>
+
+        <div class="figma-bar reveal">
+          <span class="figma-mark" aria-hidden="true">◆</span>
+          <code>figma.com/design/…/DiffStage?node-id=0-1</code>
+          <span class="figma-go">设为唯一事实来源</span>
+        </div>
+
+        <div class="hero-trust reveal">
+          <span class="trust-label">已接入主流 AI 编程工具</span>
+          <span class="trust-list">Cursor · Claude Code · Codex · Windsurf</span>
+        </div>
+      </div>
+
+      <!-- 三联产品 mock -->
+      <div class="hero-stage reveal" role="img" aria-label="DiffCycle 产品界面示意：Figma 设计稿、AI 生成代码、像素级 Diff 三联对比">
+        <div class="stage-bar">
+          <span class="stage-dots" aria-hidden="true"><i></i><i></i><i></i></span>
+          <span class="stage-title">diffcycle · 真实运行 6a68cfb6</span>
+          <span class="stage-live"><i></i>未达门槛</span>
+        </div>
+
+        <div class="stage-grid">
+          <!-- Figma -->
+          <div class="pane">
+            <div class="pane-head"><span class="pane-name">Figma 设计稿</span><span class="pane-meta">node 0:1</span></div>
+            <div class="pane-body">
+              <div class="mp mp-figma">
+                <div class="mp-nav">
+                  <span class="mp-logo"></span>
+                  <span class="mp-link"></span><span class="mp-link"></span><span class="mp-link"></span>
+                  <span class="mp-cta"></span>
+                </div>
+                <div class="mp-hero">
+                  <span class="mp-title"></span>
+                  <span class="mp-title mp-title-short"></span>
+                  <span class="mp-sub"></span>
+                  <span class="mp-btn mp-btn-a"></span>
+                  <span class="mp-btn mp-btn-b"></span>
+                </div>
+                <div class="mp-cards"><span></span><span></span><span></span></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 代码 -->
+          <div class="pane">
+            <div class="pane-head"><span class="pane-name">AI 生成代码</span><span class="pane-meta">HTML · CSS</span></div>
+            <div class="pane-body pane-body-code">
+              <pre class="code"><code><span class="ln">01</span><span class="tk-sel">.checkout-header</span> {
+<span class="ln">02</span>  <span class="tk-prop">display</span>: <span class="tk-val">flex</span>;
+<span class="ln">03</span>  <span class="tk-prop">gap</span>: <span class="tk-num">24px</span>;
+<span class="ln">04</span>  <span class="tk-prop">padding</span>: <span class="tk-num">16px</span> <span class="tk-num">32px</span>;
+<span class="ln">05</span>  <span class="tk-prop">align-items</span>: <span class="tk-val">center</span>;
+<span class="ln">06</span>}
+<span class="ln">07</span>
+<span class="ln">08</span><span class="tk-com">// 示例：该属性与设计稿不符</span>
+<span class="ln">09</span><span class="tk-com">// 真实差异以下方实测指标为准</span></code></pre>
+              <span class="code-caret" aria-hidden="true"></span>
+            </div>
+          </div>
+
+          <!-- Diff -->
+          <div class="pane pane-diff">
+            <div class="pane-head"><span class="pane-name">像素级 Diff</span><span class="pane-meta">真实渲染</span></div>
+            <div class="pane-body">
+              <div class="mp mp-render">
+                <div class="mp-nav">
+                  <span class="mp-logo"></span>
+                  <span class="mp-link"></span><span class="mp-link"></span><span class="mp-link"></span>
+                  <span class="mp-cta mp-cta-off"></span>
+                </div>
+                <div class="mp-hero">
+                  <span class="mp-title"></span>
+                  <span class="mp-title mp-title-short"></span>
+                  <span class="mp-sub"></span>
+                  <span class="mp-btn mp-btn-a"></span>
+                  <span class="mp-btn mp-btn-b"></span>
+                </div>
+                <div class="mp-cards"><span></span><span></span><span></span></div>
+                <span class="hot hot-1" aria-hidden="true"></span>
+                <span class="hot hot-2" aria-hidden="true"></span>
+                <span class="hot hot-3" aria-hidden="true"></span>
+                <span class="scan" aria-hidden="true"></span>
+              </div>
+            </div>
+            <div class="diff-meter">
+              <div class="diff-meter-row"><span>差异像素</span><b id="diffPct">15.48%</b></div>
+              <div class="diff-bar"><span id="diffBar" style="width:15.48%"></span></div>
+              <div class="diff-legend">
+                <span class="chip chip-bad">162 处差异区域</span>
+                <span class="chip chip-warn">未达验收门槛</span>
+                <span class="chip chip-ok">语义归因完成</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="stage-foot">
+          <span class="stage-step"><i class="ok"></i>解析 Figma 节点</span>
+          <span class="stage-step"><i class="ok"></i>生成代码</span>
+          <span class="stage-step"><i class="ok"></i>真实浏览器渲染</span>
+          <span class="stage-step is-active"><i class="spin"></i>像素 Diff 与 AI 修复</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="container">
+      <div class="principles reveal">
+        <div class="principle">
+          <span class="principle-k">唯一事实来源</span>
+          <span class="principle-v">以 Figma 文件为准，而不是以截图为准</span>
+        </div>
+        <div class="principle">
+          <span class="principle-k">真实渲染比对</span>
+          <span class="principle-v">差异来自真实浏览器截图，不是模型口头描述</span>
+        </div>
+        <div class="principle">
+          <span class="principle-k">语义化归因</span>
+          <span class="principle-v">区分设计变更、实现偏差与渲染噪声再决定修不修</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 能力 -->
+  <section class="section" id="capabilities">
+    <div class="container">
+      <span class="eyebrow reveal">核心能力</span>
+      <h2 class="sec-title reveal">补齐设计与代码之间缺失的那一环</h2>
+      <p class="sec-sub reveal">DiffCycle 站在 Figma 文件与代码库之间，把「设计意图」和「真实渲染结果」并行映射，让两者之间的每一处偏差都可见、可归因、可修复。</p>
+
+      <div class="cards">
+        <article class="card reveal">
+          <span class="card-ico" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="8" height="8" rx="1.5"/><rect x="13" y="13" width="8" height="8" rx="1.5"/><path d="M3 13h4M17 3h4"/></svg>
+          </span>
+          <h3>像素级 Diff</h3>
+          <p>用真实浏览器渲染候选代码，与设计稿逐像素比对，差异像素按热区高亮标出，不靠肉眼估。</p>
+        </article>
+        <article class="card reveal">
+          <span class="card-ico" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M20 12a8 8 0 1 1-3.2-6.4"/><path d="M20 4v5h-5"/></svg>
+          </span>
+          <h3>语义化 AI 修复</h3>
+          <p>模型读懂设计意图与差异热区，输出针对具体 CSS/布局问题的修复，而不是整页重写。</p>
+        </article>
+        <article class="card reveal">
+          <span class="card-ico" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 7h16M4 12h16M4 17h10"/></svg>
+          </span>
+          <h3>读取 Figma 节点</h3>
+          <p>解析 Figma 的布局约束、文本与资源，生成带语义的结构描述，而不是把设计稿当成一张图。</p>
+        </article>
+        <article class="card reveal">
+          <span class="card-ico" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2"/><rect x="4" y="7" width="16" height="13" rx="2"/><path d="M9 12h6"/></svg>
+          </span>
+          <h3>AI 工具集成</h3>
+          <p>与 Cursor、Claude Code、Codex、Windsurf 等主流 AI 编程工具协同，生成的代码自带视觉验收标准。</p>
+        </article>
+        <article class="card reveal">
+          <span class="card-ico" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="6" cy="6" r="2.5"/><circle cx="6" cy="18" r="2.5"/><circle cx="18" cy="12" r="2.5"/><path d="M6 8.5v7M8.4 7.2l7.2 3.4M8.4 16.8l7.2-3.4"/></svg>
+          </span>
+          <h3>CI 与 PR 集成</h3>
+          <p>在 Pull Request 里自动跑视觉校验，把「设计一致性」变成流水线里的一道门禁。</p>
+        </article>
+        <article class="card reveal">
+          <span class="card-ico" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="8" height="8" rx="1.5"/><rect x="13" y="3" width="8" height="8" rx="1.5"/><rect x="3" y="13" width="8" height="8" rx="1.5"/><rect x="13" y="13" width="8" height="8" rx="1.5"/></svg>
+          </span>
+          <h3>设计系统感知</h3>
+          <p>识别设计系统中的组件与 token，生成的代码沿用既有规范，而不是每次另起一套。</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- 效果：三联大图 -->
+  <section class="section section-alt" id="showcase">
+    <div class="container">
+      <span class="eyebrow reveal">设计 → 代码 → 真实页面</span>
+      <h2 class="sec-title reveal">一次运行，三份可以对照的证据</h2>
+      <p class="sec-sub reveal">左边是设计稿，中间是模型写出的代码，右边是渲染后与设计稿的像素差异。差异不是一段描述，而是一张能指到具体位置的图。</p>
+
+      <div class="showcase reveal">
+        <div class="showcase-tabs" role="tablist" aria-label="对照视图切换">
+          <button class="tab is-active" role="tab" aria-selected="true" data-view="figma">Figma 设计稿</button>
+          <button class="tab" role="tab" aria-selected="false" data-view="code">AI 生成代码</button>
+          <button class="tab" role="tab" aria-selected="false" data-view="diff">像素级 Diff</button>
+        </div>
+        <div class="showcase-stage">
+          <div class="sc-panel is-active" data-view="figma">
+            <div class="sc-label">Figma 设计稿</div>
+            <div class="sc-mock">
+              <div class="mp-nav"><span class="mp-logo"></span><span class="mp-link"></span><span class="mp-link"></span><span class="mp-link"></span><span class="mp-cta"></span></div>
+              <div class="mp-hero"><span class="mp-title"></span><span class="mp-title mp-title-short"></span><span class="mp-sub"></span><span class="mp-btn mp-btn-a"></span><span class="mp-btn mp-btn-b"></span></div>
+              <div class="mp-cards"><span></span><span></span><span></span></div>
+            </div>
+          </div>
+          <div class="sc-panel" data-view="code">
+            <div class="sc-label">AI 生成代码</div>
+            <pre class="code code-lg"><code><span class="ln">01</span><span class="tk-sel">.checkout-header</span> {
+<span class="ln">02</span>  <span class="tk-prop">display</span>: <span class="tk-val">flex</span>;
+<span class="ln">03</span>  <span class="tk-prop">gap</span>: <span class="tk-num">24px</span>;
+<span class="ln">04</span>  <span class="tk-prop">padding</span>: <span class="tk-num">16px</span> <span class="tk-num">32px</span>;
+<span class="ln">05</span>  <span class="tk-prop">align-items</span>: <span class="tk-val">center</span>;
+<span class="ln">06</span>  <span class="tk-prop">border-bottom</span>: <span class="tk-num">1px</span> <span class="tk-val">solid</span> #1b2030;
+<span class="ln">07</span>}
+<span class="ln">08</span>
+<span class="ln">09</span><span class="tk-com">// 示例注释</span>
+<span class="ln">10</span><span class="tk-com">// 示例注释</span></code></pre>
+          </div>
+          <div class="sc-panel" data-view="diff">
+            <div class="sc-label">像素级 Diff</div>
+            <div class="sc-mock sc-mock-diff">
+              <div class="mp-nav"><span class="mp-logo"></span><span class="mp-link"></span><span class="mp-link"></span><span class="mp-link"></span><span class="mp-cta mp-cta-off"></span></div>
+              <div class="mp-hero"><span class="mp-title"></span><span class="mp-title mp-title-short"></span><span class="mp-sub"></span><span class="mp-btn mp-btn-a"></span><span class="mp-btn mp-btn-b"></span></div>
+              <div class="mp-cards"><span></span><span></span><span></span></div>
+              <span class="hot hot-lg hot-1" aria-hidden="true"></span>
+              <span class="hot hot-lg hot-2" aria-hidden="true"></span>
+              <span class="hot hot-lg hot-3" aria-hidden="true"></span>
+            </div>
+            <div class="sc-note">
+              <span class="chip chip-bad">热区 1 · 导航间距 +12px</span>
+              <span class="chip chip-warn">热区 2 · 按钮圆角偏差</span>
+              <span class="chip chip-warn">热区 3 · 文案基线偏移</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+    <!-- 真实跑通记录：来自本机一次真实运行 -->
+    <section class="section" id="proof">
+      <div class="container">
+        <span class="eyebrow reveal">真实记录 · 不是示意图</span>
+        <h2 class="sec-title reveal">这一屏里的每一张图，都来自一次真实运行</h2>
+        <p class="sec-sub reveal">我们把我们自己上一版官网首页（1440×3848）交给引擎：AI 写出单文件 HTML，Chromium 真实渲染，再与设计稿逐像素比对。下面是那次运行留下的原始产物。</p>
+
+        <div class="proof-grid reveal">
+          <figure class="proof-cell">
+            <img src="assets/img/run-design.jpg" width="700" height="1871" alt="设计稿：1440×3848 的整版设计稿" loading="lazy" />
+            <figcaption>设计稿 · 1440×3848</figcaption>
+          </figure>
+          <figure class="proof-cell">
+            <img src="assets/img/run-generated.jpg" width="700" height="1871" alt="AI 生成的页面在真实 Chromium 中的渲染截图" loading="lazy" />
+            <figcaption>引擎生成 · Chromium 真实渲染</figcaption>
+          </figure>
+          <figure class="proof-cell">
+            <img src="assets/img/run-diff.jpg" width="700" height="1871" alt="像素级差异图" loading="lazy" />
+            <figcaption>像素级 Diff</figcaption>
+          </figure>
+        </div>
+
+        <p class="proof-label reveal">上一次运行 · 1440×3848 整版</p>
+        <div class="proof-metrics reveal"><div><b>15.48%</b><span>严格像素差（阈值 0.01）</span></div><div><b>2.58%</b><span>人眼可见差异（阈值 0.2）</span></div><div><b>4.79%</b><span>验收门槛差（阈值 0.05）</span></div><div><b>162</b><span>差异区域（19 新增 / 9 删除 / 134 修改）</span></div></div>
+
+        <p class="proof-note reveal">同一张首页（1440×3848）逐像素实测：<b>严格像素差 15.48%</b>、<b>人眼可见差异 2.58%</b>、<b>验收门槛差 4.79%</b>，共 <b>162</b> 处差异区域（19 新增 / 9 删除 / 134 修改）。这一轮自动修复<b>没有一轮被采纳</b>，所以我们不宣称「像素级还原」；但语义归因仍然完成 —— 每一处差异都被定位到具体区域与元素。你可以<a href="assets/runs/generated-page.html" target="_blank" rel="noreferrer">直接打开这次生成的页面</a></p>
+
+        <figure class="proof-shot reveal">
+          <img src="assets/img/workbench.jpg" width="900" height="1672" alt="DiffCycle 本地工作台：左侧设计稿、中间流式代码、右侧真实渲染与像素 Diff" loading="lazy" />
+          <figcaption>本地工作台：设计稿、流式代码、真实渲染与 Diff 在同一屏</figcaption>
+        </figure>
+        <figure class="proof-video reveal">
+          <video controls preload="none" playsinline poster="assets/img/demo-run-poster.jpg">
+            <source src="assets/video/demo-run.mp4" type="video/mp4" />
+            你的浏览器不支持内嵌视频，可<a href="assets/video/demo-run.mp4">直接下载这段录屏</a>。
+          </video>
+          <figcaption>录屏：一次完整运行（1440×900 视口）。录屏结束时该批次的严格像素差 1.5%、人眼可见差异 1.4%。这是<b>录屏那一批次</b>的读数，与上方 1440×3848 整版实测不是同一批数据，不能相互替换。</figcaption>
+        </figure>
+      </div>
+    </section>
+
+  <!-- 工作原理 -->
+<!-- AGENT 接入 -->
+    <section class="section" id="agent">
+      <div class="container">
+        <span class="eyebrow reveal">接入你的 Agent</span>
+        <h2 class="sec-title reveal">让 Agent 自己量，而不是自己说</h2>
+        <p class="sec-sub reveal">
+          DiffCycle 以两种形态接入你的编码 Agent：MCP 工具面提供「量」的能力，写闸门（Hook）提供「不许糊弄」的约束。
+          模型负责提议改法，DiffCycle 负责裁决 —— 模型永远不能自己宣布完成。
+        </p>
+        <ol class="steps">
+          <li class="step reveal"><span class="step-no">01</span><div class="step-body">
+            <h3>Kiro</h3>
+            <p>工作区内置自定义 Agent 与 PreToolUse 写闸门：写文件之前先测量，未达门槛直接阻断并回灌理由。</p>
+          </div></li>
+          <li class="step reveal"><span class="step-no">02</span><div class="step-body">
+            <h3>Claude Code</h3>
+            <p>项目级 <code>.mcp.json</code> 注册工具面，<code>.claude/skills/</code> 承载行为契约；首次连接需手动批准。</p>
+          </div></li>
+          <li class="step reveal"><span class="step-no">03</span><div class="step-body">
+            <h3>Cursor</h3>
+            <p><code>.cursor/mcp.json</code> 搭配 <code>.cursor/rules/*.mdc</code>；写闸门需要显式开启 failClosed。</p>
+          </div></li>
+          <li class="step reveal"><span class="step-no">04</span><div class="step-body">
+            <h3>Codex</h3>
+            <p><code>~/.codex/config.toml</code> 注册 MCP，<code>AGENTS.md</code> 从仓库根逐层向下生效。</p>
+          </div></li>
+          <li class="step reveal"><span class="step-no">05</span><div class="step-body">
+            <h3>Cascade</h3>
+            <p><code>mcp_config.json</code> 手动配置，没有一键安装；行为契约放在 <code>.devin/skills/</code>。</p>
+          </div></li>
+        </ol>
+        <p class="sec-sub reveal">
+          工具面目前提供 <code>diffcycle_measure</code>（给定设计稿与页面地址，返回三档阈值下的差异百分比、差异区域与验收结论）
+          与 <code>diffcycle_thresholds</code>（查询三档阈值的定义与取值）。
+        </p>
+      </div>
+    </section>
+
+      <section class="section" id="how">
+    <div class="container">
+      <span class="eyebrow reveal">工作原理</span>
+      <h2 class="sec-title reveal">从 Figma 链接到可交付页面，三步构成一个闭环</h2>
+      <p class="sec-sub reveal">每一步都有可以复核的中间产物：设计描述、代码、渲染截图、差异热区。复检不过，闭环就再转一圈。</p>
+
+      <ol class="steps">
+        <li class="step reveal">
+          <span class="step-no">01</span>
+          <div class="step-body">
+            <h3>解析设计</h3>
+            <p>粘贴 Figma 文件链接，DiffCycle 读取节点结构、布局约束与文本资源，生成可被模型消费的设计描述。</p>
+            <span class="step-art step-art-1" aria-hidden="true"><i></i><i></i><i></i></span>
+          </div>
+        </li>
+        <li class="step reveal">
+          <span class="step-no">02</span>
+          <div class="step-body">
+            <h3>生成并渲染</h3>
+            <p>AI 写出单文件 HTML 与内嵌 CSS；DiffCycle 在真实浏览器中渲染候选结果并截图。</p>
+            <span class="step-art step-art-2" aria-hidden="true"><i></i><i></i><i></i></span>
+          </div>
+        </li>
+        <li class="step reveal">
+          <span class="step-no">03</span>
+          <div class="step-body">
+            <h3>比对并修复</h3>
+            <p>渲染结果与设计稿做像素级 Diff，差异按热区定位；模型读懂意图后做定点修复，再复检直到收敛。</p>
+            <span class="step-art step-art-3" aria-hidden="true"><i></i><i></i><i></i></span>
+          </div>
+        </li>
+      </ol>
+
+      <div class="cycle-loop reveal" role="note">
+        <span class="cycle-arrow" aria-hidden="true">
+          <svg viewBox="0 0 48 48" width="44" height="44"><path d="M9 25a15 15 0 1 1 5 12" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/><path d="M13 40l1-9 9 1z" fill="currentColor"/></svg>
+        </span>
+        <p class="cycle-text"><strong>不收敛就回到第 1 步。</strong>复检仍超出阈值时，差异热区带着语义归因重新进入修复，直到像素级一致才停下——这就是 DiffCycle：一条跑到收敛才停的差异闭环。</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 场景 -->
+  <section class="section section-alt" id="cases">
+    <div class="container">
+      <span class="eyebrow reveal">使用场景</span>
+      <h2 class="sec-title reveal">一个引擎，覆盖每一次视觉交接</h2>
+      <p class="sec-sub reveal">无论是设计稿刚交付，还是代码已经上线，DiffCycle 都让「设计」和「代码」保持同一份事实。</p>
+
+      <div class="cases">
+        <article class="case reveal">
+          <span class="case-no">场景 01</span>
+          <h3>设计交付</h3>
+          <p>设计师在 Figma 完成设计，DiffCycle 直接产出可维护的代码，而不是一张切图或一段需要手改的 CSS。</p>
+        </article>
+        <article class="case reveal">
+          <span class="case-no">场景 02</span>
+          <h3>CI 集成</h3>
+          <p>在流水线里自动跑视觉校验，让「设计一致性」成为合并前的硬门禁，而不是上线后才发现。</p>
+        </article>
+        <article class="case reveal">
+          <span class="case-no">场景 03</span>
+          <h3>设计系统</h3>
+          <p>以 Figma 设计系统为基准批量产出组件与页面，token、间距与组件结构与设计稿保持同源。</p>
+        </article>
+        <article class="case reveal">
+          <span class="case-no">场景 04</span>
+          <h3>回归测试</h3>
+          <p>每次迭代都重新渲染并与设计稿比对，改动引入了视觉漂移就会立刻暴露在 PR 上。</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- 定价 -->
+  <section class="section" id="pricing">
+    <div class="container">
+      <span class="eyebrow reveal">定价</span>
+      <h2 class="sec-title reveal">早鸟期内免费使用</h2>
+      <p class="sec-sub reveal">产品仍在打磨期，个人与小团队可以免费使用完整能力。以下是已确定的形态，最终价格以正式发布为准。</p>
+
+      <div class="plans">
+        <article class="plan reveal">
+          <span class="plan-name">试用</span>
+          <span class="plan-price">免费</span>
+          <span class="plan-desc">完整能力不限次数，早鸟期内个人与小团队免费使用。</span>
+          <ul class="plan-list">
+            <li>Figma 链接 → 代码全流程</li>
+            <li>像素级 Diff 与 AI 自动修复</li>
+            <li>本地 CLI 与 API</li>
+          </ul>
+          <a class="btn btn-outline btn-block" href="#start">免费开始</a>
+        </article>
+        <article class="plan plan-hi reveal">
+          <span class="plan-badge">即将开放</span>
+          <span class="plan-name">团队</span>
+          <span class="plan-price">待定</span>
+          <span class="plan-desc">面向设计与研发协作团队的共享空间、权限与用量管理。</span>
+          <ul class="plan-list">
+            <li>共享项目与团队基线</li>
+            <li>PR 检查与评论机器人</li>
+            <li>用量与审计</li>
+          </ul>
+          <span class="btn btn-disabled btn-block">敬请期待</span>
+        </article>
+        <article class="plan reveal">
+          <span class="plan-badge">即将开放</span>
+          <span class="plan-name">私有部署</span>
+          <span class="plan-price">待定</span>
+          <span class="plan-desc">面向对代码与设计资产有合规要求的团队，支持内网部署。</span>
+          <ul class="plan-list">
+            <li>内网私有化部署</li>
+            <li>模型与密钥自管</li>
+            <li>企业级支持</li>
+          </ul>
+          <span class="btn btn-disabled btn-block">敬请期待</span>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="section cta-section" id="start">
+    <div class="container">
+      <div class="cta-box reveal">
+        <div class="cta-copy">
+          <h2>让 Figma 成为唯一事实来源</h2>
+          <p>给 AI 编码代理一份可验证的视觉基准，让它自己跑完生成、比对与修复的闭环。</p>
+        </div>
+        <div class="cta-actions">
+          <form class="lead-form" id="leadForm" name="lead" method="POST" action="/" data-netlify="true" netlify netlify-honeypot="bot-field" novalidate>
+            <label class="visually-hidden" for="leadEmail">邮箱</label>
+            <input id="leadEmail" name="email" type="email" autocomplete="email" placeholder="你的邮箱" required />
+            <input type="hidden" name="form-name" value="lead" />
+            <input type="hidden" name="source" value="web-cta" />
+            <p class="visually-hidden" aria-hidden="true"><label>请留空<input name="bot-field" tabindex="-1" autocomplete="off" /></label></p>
+            <button class="btn btn-primary btn-lg" type="submit">免费开始</button>
+          </form>
+          <div class="cta-links">
+          <p class="cta-fine">登记只保存你的邮箱与来源渠道，用于发送开通方式；信息存放在本站托管服务商的表单后台，不做营销分发、不共享给第三方。本站不使用 Cookie 与第三方统计。</p>
+            <a class="btn btn-outline" href="#showcase">看实际效果</a>
+            <span class="cta-note" id="leadStatus" role="status">无需信用卡 · 早鸟期内免费</span>
+          </div>
+          <p class="cta-fine">当前试用版范围：单个 Figma Frame（链接需含 node-id）→ 单文件静态 HTML + 内嵌 CSS → 真实浏览器渲染与像素级 Diff → 语义化修复后复检，全程在本机运行，需自备 Figma Token 与支持视觉输入的模型。CI / PR 门禁与设计系统识别在路线图中。</p>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="footer" id="docs">
+  <div class="container">
+    <div class="foot-grid">
+      <div class="foot-brand">
+        <a class="brand" href="#top" aria-label="DiffCycle 首页">
+          <span class="mark" aria-hidden="true"><span class="mk-a"></span><span class="mk-b"></span><span class="mk-x"></span></span>
+          <span class="brand-name">DiffCycle</span>
+          <span class="brand-cn" aria-hidden="true">差异闭环</span>
+        </a>
+        <p class="foot-blurb">面向 AI 编码代理的视觉校验层。让设计意图和真实渲染结果始终对齐。</p>
+      </div>
+      <div class="foot-col">
+        <h4>产品</h4>
+        <ul>
+          <li><a href="#capabilities">核心能力</a></li>
+          <li><a href="#showcase">效果对照</a></li>
+          <li><a href="#how">工作原理</a></li>
+          <li><a href="#cases">使用场景</a></li>
+          <li><a href="#pricing">定价</a></li>
+        </ul>
+      </div>
+      <div class="foot-col">
+        <h4>集成</h4>
+        <ul>
+          <li><span class="foot-item">Cursor<span class="soon">即将上线</span></span></li>
+          <li><span class="foot-item">Claude Code<span class="soon">即将上线</span></span></li>
+          <li><span class="foot-item">Codex<span class="soon">即将上线</span></span></li>
+          <li><span class="foot-item">Windsurf<span class="soon">即将上线</span></span></li>
+        </ul>
+      </div>
+      <div class="foot-col">
+        <h4>资源</h4>
+        <ul>
+          <li><span class="foot-item">文档<span class="soon">即将上线</span></span></li>
+          <li><span class="foot-item">MCP 服务<span class="soon">即将上线</span></span></li>
+          <li><span class="foot-item">更新日志<span class="soon">即将上线</span></span></li>
+          <li><span class="foot-item">博客<span class="soon">即将上线</span></span></li>
+        </ul>
+      </div>
+    </div>
+    <div class="foot-bottom">
+      <span>© 2026 DiffCycle · 差异闭环</span>
+      <span class="foot-mono">DiffCycle · 让设计稿与代码像素级一致</span>
+        <span class="foot-mono" id="footContact"></span>
+    </div>
+  </div>
+</footer>
+
+<script src="assets/js/main.js" defer></script>
+</body>
+</html>
