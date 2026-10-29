@@ -350,42 +350,49 @@
 
   <!-- 工作原理 -->
 <!-- AGENT 接入 -->
-    <section class="section" id="agent">
-      <div class="container">
-        <span class="eyebrow reveal">接入你的 Agent</span>
-        <h2 class="sec-title reveal">让 Agent 自己量，而不是自己说</h2>
-        <p class="sec-sub reveal">
-          DiffCycle 以两种形态接入你的编码 Agent：MCP 工具面提供「量」的能力，写闸门（Hook）提供「不许糊弄」的约束。
-          模型负责提议改法，DiffCycle 负责裁决 —— 模型永远不能自己宣布完成。
-        </p>
-        <ol class="steps">
-          <li class="step reveal"><span class="step-no">01</span><div class="step-body">
-            <h3>Kiro</h3>
-            <p>工作区内置自定义 Agent 与 PreToolUse 写闸门：写文件之前先测量，未达门槛直接阻断并回灌理由。</p>
-          </div></li>
-          <li class="step reveal"><span class="step-no">02</span><div class="step-body">
-            <h3>Claude Code</h3>
-            <p>项目级 <code>.mcp.json</code> 注册工具面，<code>.claude/skills/</code> 承载行为契约；首次连接需手动批准。</p>
-          </div></li>
-          <li class="step reveal"><span class="step-no">03</span><div class="step-body">
-            <h3>Cursor</h3>
-            <p><code>.cursor/mcp.json</code> 搭配 <code>.cursor/rules/*.mdc</code>；写闸门需要显式开启 failClosed。</p>
-          </div></li>
-          <li class="step reveal"><span class="step-no">04</span><div class="step-body">
-            <h3>Codex</h3>
-            <p><code>~/.codex/config.toml</code> 注册 MCP，<code>AGENTS.md</code> 从仓库根逐层向下生效。</p>
-          </div></li>
-          <li class="step reveal"><span class="step-no">05</span><div class="step-body">
-            <h3>Cascade</h3>
-            <p><code>mcp_config.json</code> 手动配置，没有一键安装；行为契约放在 <code>.devin/skills/</code>。</p>
-          </div></li>
-        </ol>
-        <p class="sec-sub reveal">
-          工具面目前提供 <code>diffcycle_measure</code>（给定设计稿与页面地址，返回三档阈值下的差异百分比、差异区域与验收结论）
-          与 <code>diffcycle_thresholds</code>（查询三档阈值的定义与取值）。
-        </p>
-      </div>
-    </section>
+<section class="section" id="agent">
+<div class="container">
+<span class="eyebrow reveal">接入你的 Agent</span>
+<h2 class="sec-title reveal">让 Agent 自己量，而不是自己说</h2>
+<p class="sec-sub reveal">
+DiffCycle 以两种形态接入你的编码 Agent：MCP 工具面提供「量」的能力，写闸门（Hook）提供「不许含糊」的约束。
+模型负责提议改法，DiffCycle 负责裁决——模型永远不能自己宣布完成。
+</p>
+<p class="sec-sub reveal">
+Kiro 的安装器写写闸门与自定义 Agent；其余四家把同一份 MCP 服务定义与同一份行为契约，写进各自互不相同的配置格式。
+安装器幂等，改动前自动备份，不写入任何凭据值；动手前先跑 <code>--dry-run</code> 或 <code>--check</code> 预览。
+</p>
+<ol class="steps">
+<li class="step reveal"><span class="step-no">01</span><div class="step-body">
+<h3>Kiro</h3>
+<p><code>node scripts/install-kiro.mjs --target .</code> 写工作区自定义 Agent 与 PreToolUse 写闸门：改文件之前先测量，未达门槛直接阻断并回灌理由；MCP 服务端在 Kiro 设置里注册。<strong>目前唯一实机验证过的强制层。</strong></p>
+</div></li>
+<li class="step reveal"><span class="step-no">02</span><div class="step-body">
+<h3>Claude Code</h3>
+<p><code>node scripts/install-claude-code.mjs --target .</code> 写项目级 <code>.mcp.json</code>、<code>.claude/skills/</code> 与 <code>.claude/agents/</code>；首次连接需手动批准。</p>
+</div></li>
+<li class="step reveal"><span class="step-no">03</span><div class="step-body">
+<h3>Cursor</h3>
+<p><code>node scripts/install-cursor.mjs --target .</code> 写 <code>.cursor/mcp.json</code> 与 <code>.cursor/rules/*.mdc</code>——Cursor 会忽略该目录下的普通 <code>.md</code>，所以规则用 <code>.mdc</code>。</p>
+</div></li>
+<li class="step reveal"><span class="step-no">04</span><div class="step-body">
+<h3>Codex</h3>
+<p><code>node scripts/install-codex.mjs --target .</code> 写 <code>~/.codex/config.toml</code> 的 MCP 段与仓库根 <code>AGENTS.md</code>；Codex 逐层向下读取，离当前目录越近的文件越优先。</p>
+</div></li>
+<li class="step reveal"><span class="step-no">05</span><div class="step-body">
+<h3>Cascade</h3>
+<p><code>node scripts/install-cascade.mjs --target . --mcp-config &lt;路径&gt;</code> 写 <code>mcp_config.json</code> 与 <code>.devin/skills/</code>；路径取自面板 Actions → Open MCP config file。</p>
+</div></li>
+</ol>
+<p class="sec-sub revaal">
+工具面目前提供 <code>diffcycle_measure</code>（给定设计稿与页面地址，返回三档阈值下的差异百分比、差异区域与验收结论）与 <code>diffcycle_thresholds</code>（查询三档阈值的定义与取值）。
+</p>
+<p class="sec-sub reveal">
+也把边界说清楚：写闸门只在 Kiro 上实测过。Claude Code、Cursor、Codex、Cascade 目前装的是「指令层 + 工具面」——Agent 会去量，但没有任何东西替它拦住一句没根据的「已经好了」。
+</p>
+</div>
+</section>
+
 
       <section class="section" id="how">
     <div class="container">
