@@ -393,9 +393,11 @@ DiffCycle 以两种形态接入你的编码 Agent：MCP 工具面提供「量」
 Agent 在别处问过「哪里不一样」「跟设计稿对一下」也会自动用上——触发词是按用户真会说的话写的，不是按术语写的。
 </p>
 <p class="sec-sub reveal">
-量完不必切窗口，是我们正在做的下一步。MCP Apps 是 MCP 的第一个官方扩展，工具可以直接返回交互式 UI：设计稿、实测截图与差异热区并排渲染在对话里，点哪块看哪块。
-ChatGPT、Claude、Goose 与 VS Code 已宣布支持；但 DiffCycle 的 measure 工具目前还没接上这一层，仍返回数字与区域坐标。
-</p>
+        先把边界说清楚：MCP Apps 是 MCP 的官方扩展机制，允许工具声明一个交互式 UI。扩展本身已经
+        production ready，ChatGPT、Claude、Goose、VS Code 都支持。DiffCycle 的 measure 工具目前
+        <strong>还没有接上这一层</strong>：它返回的是标准的 image content block（设计稿 | 实测渲染 |
+        差异热区），让差异在对话里直接看得见，但这不是 MCP Apps 声明出来的可交互 UI。
+      </p>
 <p class="sec-sub reveal">
 也把边界说清楚：写闸门只在 Kiro 上实测过。Claude Code 与 Codex 的 Hook 机制都有官方文档（2026-10 核对），本项目尚未实现这两个宿主的写闸门；Cursor 的 Hook 默认 fail-open，装一个坏掉的闸门看起来是健康的，实际什么也拦不住。
 所以在这几家上 Agent 会去量，但没有任何东西替它拦住一句没根据的「已经好了」。
@@ -405,11 +407,16 @@ ChatGPT、Claude、Goose 与 VS Code 已宣布支持；但 DiffCycle 的 measure
 
 
 
+
       <section class="section" id="how">
     <div class="container">
       <span class="eyebrow reveal">工作原理</span>
       <h2 class="sec-title reveal">从 Figma 链接到可交付页面，三步构成一个闭环</h2>
       <p class="sec-sub reveal">每一步都有可以复核的中间产物：设计描述、代码、渲染截图、差异热区。复检不过，闭环就再转一圈。</p>
+        <figure class="agent-shot reveal">
+          <img src="assets/img/run-comparison.png" width="916" height="802" alt="一次真实像素测量的三联图：左侧设计稿，中间实测渲染的页面，右侧差异热区">
+          <figcaption>一次真实测量的产物：设计稿 | 实测渲染 | 差异热区，三张并排直接放进对话里。该次测量为严格 12.81%、闸门 3.62%、感知 2.00%，164 个差异区域 —— 它与首页演示用的不是同一组样本，所以数字不同。热区图只用来定位差异，所有数字都来自像素内核。</figcaption>
+        </figure>
 
       <ol class="steps">
         <li class="step reveal">
