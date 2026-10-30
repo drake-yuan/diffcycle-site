@@ -399,7 +399,7 @@ Agent 在别处问过「哪里不一样」「跟设计稿对一下」也会自�
         差异热区），让差异在对话里直接看得见，但这不是 MCP Apps 声明出来的可交互 UI。
       </p>
 <p class="sec-sub reveal">
-        也把边界说清楚：写闸门只在 Kiro 上实测通过。Claude Code 的写闸门适配器已经按官方 Hook 文档实现，并且用 Claude Code 会发的那种 stdin JSON 跑过 11 项逻辑断言（全部通过），但还没有在登录状态下真机跑过一次；Codex 的 Hook 官方文档同样存在，本项目尚未实现。Cursor 的 Hook 默认 fail-open，装一个坏掉的闸门看起来是健康的，实际什么也拦不住。所以在这几家上 Agent 会去量，但还没有东西替它拦住一句没根据的「已经好了」。
+        也把边界说清楚：写闸门只在 Kiro 上实测通过。Claude Code 与 Codex 的写闸门适配器都已经按各自官方 Hook 文档实现，并且用各家会发的那种 stdin JSON 跑过 17 项逻辑断言（全部通过），但都还没有在登录状态下真机跑过一次。Codex 还有一个官方写明的限制：同一事件的多个 Hook 是并发启动的，一个拦不住另一个，所以每个闸门都必须自己 fail-closed，不能指望自己是唯一一个。Cursor 的 Hook 默认 fail-open，装一个坏掉的闸门看起来是健康的，实际什么也拦不住。所以在这几家上 Agent 会去量，但还没有东西替它拦住一句没根据的「已经好了」。
       </p>
         <figure class="agent-shot reveal">
           <img src="assets/img/run-comparison.png" width="916" height="802" alt="一次真实像素测量的三联图：左侧设计稿，中间实测渲染的页面，右侧差异热区">
