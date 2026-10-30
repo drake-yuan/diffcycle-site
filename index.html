@@ -359,39 +359,50 @@ DiffCycle 以两种形态接入你的编码 Agent：MCP 工具面提供「量」
 模型负责提议改法，DiffCycle 负责裁决——模型永远不能自己宣布完成。
 </p>
 <p class="sec-sub reveal">
-Kiro 的安装器写写闸门与自定义 Agent；其余四家把同一份 MCP 服务定义与同一份行为契约，写进各自互不相同的配置格式。
-安装器幂等，改动前自动备份，不写入任何凭据值；动手前先跑 <code>--dry-run</code> 或 <code>--check</code> 预览。
+先装，再说话。仓库 <code>scripts/</code> 下每个宿主一个安装器，把同一份 MCP 服务定义与同一份行为契约写进它各自的配置格式：
+幂等、改动前自动备份、不写入任何凭据值，动手前先 <code>--dry-run</code> 或 <code>--check</code> 预览。
 </p>
 <ol class="steps">
 <li class="step reveal"><span class="step-no">01</span><div class="step-body">
-<h3>Kiro</h3>
-<p><code>node scripts/install-kiro.mjs --target .</code> 写工作区自定义 Agent 与 PreToolUse 写闸门：改文件之前先测量，未达门槛直接阻断并回灌理由；MCP 服务端在 Kiro 设置里注册。<strong>目前唯一实机验证过的强制层。</strong></p>
+<h3>Codex</h3>
+<p><code>node scripts/install-codex.mjs --target .</code> 写 <code>~/.codex/config.toml</code> 的 <code>[mcp_servers.diffcycle]</code> 段与仓库根 <code>AGENTS.md</code>。Codex 逐层向下读取 <code>AGENTS.md</code>，离当前目录越近的文件越优先。</p>
 </div></li>
 <li class="step reveal"><span class="step-no">02</span><div class="step-body">
 <h3>Claude Code</h3>
-<p><code>node scripts/install-claude-code.mjs --target .</code> 写项目级 <code>.mcp.json</code>、<code>.claude/skills/</code> 与 <code>.claude/agents/</code>；首次连接需手动批准。</p>
+<p><code>node scripts/install-claude-code.mjs --target .</code> 写项目级 <code>.mcp.json</code>、<code>.claude/skills/</code> 与 <code>.claude/agents/</code>；首次连接需手动批准。装完用 <code>/diffcycle</code> 就能直接点名这个能力。</p>
 </div></li>
 <li class="step reveal"><span class="step-no">03</span><div class="step-body">
 <h3>Cursor</h3>
 <p><code>node scripts/install-cursor.mjs --target .</code> 写 <code>.cursor/mcp.json</code> 与 <code>.cursor/rules/*.mdc</code>——Cursor 会忽略该目录下的普通 <code>.md</code>，所以规则用 <code>.mdc</code>。</p>
 </div></li>
 <li class="step reveal"><span class="step-no">04</span><div class="step-body">
-<h3>Codex</h3>
-<p><code>node scripts/install-codex.mjs --target .</code> 写 <code>~/.codex/config.toml</code> 的 MCP 段与仓库根 <code>AGENTS.md</code>；Codex 逐层向下读取，离当前目录越近的文件越优先。</p>
+<h3>VS Code</h3>
+<p>VS Code 已支持 MCP Apps，是把 diff 视图直接画在对话里的最短路径；GitHub Copilot 是这套工具链里体量最大的 AI 编码工具。</p>
 </div></li>
 <li class="step reveal"><span class="step-no">05</span><div class="step-body">
-<h3>Cascade</h3>
-<p><code>node scripts/install-cascade.mjs --target . --mcp-config &lt;路径&gt;</code> 写 <code>mcp_config.json</code> 与 <code>.devin/skills/</code>；路径取自面板 Actions → Open MCP config file。</p>
+<h3>其它 CLI 与编辑器</h3>
+<p>Gemini CLI、OpenCode、Roo Code、Zed、Windsurf / Devin Desktop 的 Cascade 都支持 MCP，只是配置文件各不一样：<code>~/.gemini/settings.json</code>、<code>opencode.json</code>、<code>.roo/mcp.json</code>、<code>~/.config/zed/settings.json</code>、<code>~/.codeium/windsurf/mcp_config.json</code>。</p>
+</div></li>
+<li class="step reveal"><span class="step-no">06</span><div class="step-body">
+<h3>Kiro</h3>
+<p><code>node scripts/install-kiro.mjs --target .</code> 写工作区自定义 Agent 与 PreToolUse 写闸门：改文件之前先测量，未达门槛直接阻断并回灌理由；MCP 服务端在 Kiro 设置里注册。<strong>目前唯一实机验证过的强制层。</strong></p>
 </div></li>
 </ol>
-<p class="sec-sub revaal">
-工具面目前提供 <code>diffcycle_measure</code>（给定设计稿与页面地址，返回三档阈值下的差异百分比、差异区域与验收结论）与 <code>diffcycle_thresholds</code>（查询三档阈值的定义与取值）。
+<p class="sec-sub reveal">
+装完怎么开始？把这句话粘给你的 Agent：<code>用 diffcycle_measure 量一下这个页面和设计稿的差异，把 diff 和 withinGate 给我</code>。
+Agent 在别处问过「哪里不一样」「跟设计稿对一下」也会自动用上——触发词是按用户真会说的话写的，不是按术语写的。
 </p>
 <p class="sec-sub reveal">
-也把边界说清楚：写闸门只在 Kiro 上实测过。Claude Code、Cursor、Codex、Cascade 目前装的是「指令层 + 工具面」——Agent 会去量，但没有任何东西替它拦住一句没根据的「已经好了」。
+量完不必切窗口，是我们正在做的下一步。MCP Apps 是 MCP 的第一个官方扩展，工具可以直接返回交互式 UI：设计稿、实测截图与差异热区并排渲染在对话里，点哪块看哪块。
+ChatGPT、Claude、Goose 与 VS Code 已宣布支持；但 DiffCycle 的 measure 工具目前还没接上这一层，仍返回数字与区域坐标。
+</p>
+<p class="sec-sub reveal">
+也把边界说清楚：写闸门只在 Kiro 上实测过。Claude Code 与 Codex 的 Hook 机制都有官方文档（2026-10 核对），本项目尚未实现这两个宿主的写闸门；Cursor 的 Hook 默认 fail-open，装一个坏掉的闸门看起来是健康的，实际什么也拦不住。
+所以在这几家上 Agent 会去量，但没有任何东西替它拦住一句没根据的「已经好了」。
 </p>
 </div>
 </section>
+
 
 
       <section class="section" id="how">
