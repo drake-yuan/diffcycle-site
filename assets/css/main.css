@@ -728,3 +728,9 @@ a.foot-item:hover {
   border: 1px solid var(--line);
   color: var(--text);
 }
+
+/* anchored sections must clear the fixed nav */
+section[id],
+.sec-title[id] {
+  scroll-margin-top: calc(var(--nav-h) + 24px);
+}
