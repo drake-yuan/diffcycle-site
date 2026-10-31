@@ -680,3 +680,14 @@ a.nav-quiet {
 a.nav-quiet:hover {
   color: var(--text);
 }
+
+/* footer items that became real links */
+a.foot-item {
+  color: var(--muted);
+  text-decoration: none;
+  transition: color .18s ease;
+}
+
+a.foot-item:hover {
+  color: var(--text);
+}
