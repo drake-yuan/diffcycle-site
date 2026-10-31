@@ -10,11 +10,11 @@ DiffCycle 是一套把「页面和设计稿差多少」变成可复算数字的�
 | 平台 | 地址 | 状态 |
 | --- | --- | --- |
 | GitHub Pages | `https://drake-yuan.github.io/diffcycle-site/` | **主地址**。免费、无流量上限、已验证国内可达 |
-| surge.sh | `https://drake-yuan.github.io/diffcycle-site/` | 备用。免费，但未点验证邮件时域名只服务 90 分钟 |
-| Gitee Pages | `https://drake-yuan.github.io/diffcycle-site/` | 备用，尚未启用（需在仓库设置里开启一次） |
-| Netlify | `https://drake-yuan.github.io/diffcycle-site//` | **已停用**：账户额度用尽，站点不再更新 |
+| surge.sh | 备用 | 免费，但未点验证邮件时域名只服务 90 分钟 |
+| Gitee Pages | 备用 | 尚未启用，启用后在仓库设置里填一次即可 |
+| Netlify | 已停用 | 账户额度用尽，该地址不再更新 |
 
-旧地址一律不要再对外发。长期只发 GitHub Pages 那个。
+除 GitHub Pages 外，其余都是备用镜像；旧的 Netlify 地址一律不要再对外发。长期只发上面那个 GitHub Pages 地址。
 
 ## 发布（GitHub Pages）
 
