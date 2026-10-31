@@ -358,10 +358,7 @@
 DiffCycle 以两种形态接入你的编码 Agent：MCP 工具面提供「量」的能力，写闸门（Hook）提供「不许含糊」的约束。
 模型负责提议改法，DiffCycle 负责裁决——模型永远不能自己宣布完成。
 </p>
-<p class="sec-sub reveal">
-先装，再说话。仓库 <code>scripts/</code> 下每个宿主一个安装器，把同一份 MCP 服务定义与同一份行为契约写进它各自的配置格式：
-幂等、改动前自动备份、不写入任何凭据值，动手前先 <code>--dry-run</code> 或 <code>--check</code> 预览。
-</p>
+<p class="sec-sub reveal">每个宿主一个安装器：幂等、改动前自动备份、不写入任何凭据值，动手前先 <code>--dry-run</code> 预览。安装位置与参数见 <a href="docs.html">文档</a>。</p>
 <ol class="steps">
 <li class="step reveal"><span class="step-no">01</span><div class="step-body">
 <h3>Codex</h3>
@@ -393,14 +390,8 @@ DiffCycle 以两种形态接入你的编码 Agent：MCP 工具面提供「量」
 Agent 在别处问过「哪里不一样」「跟设计稿对一下」也会自动用上——触发词是按用户真会说的话写的，不是按术语写的。
 现在 measure 还会把「设计稿 | 实测渲染 | 差异热区」三联图直接放进对话里，差异一眼可见，不必自己去开 PNG。</p>
         <p class="sec-sub reveal">完整的安装步骤、参数表、判定规则与故障排查，<a href="docs.html">看文档</a>。</p>
-<p class="sec-sub reveal">
-        先把边界说清楚：MCP Apps 是 MCP 的官方扩展机制，允许工具声明一个交互式 UI。扩展本身已经
-        production ready，ChatGPT、Claude、Goose、VS Code 都支持。DiffCycle 的 measure 工具目前
-        <strong>还没有接上这一层</strong>：它返回的是标准的 image content block（设计稿 | 实测渲染 |
-        差异热区），让差异在对话里直接看得见，但这不是 MCP Apps 声明出来的可交互 UI。
-      </p>
-<p class="sec-sub reveal">
-        也把边界说清楚：写闸门覆盖 Claude Code、Codex 与 Kiro。Claude Code 与 Codex 按各自官方 Hook 文档接入（退出码 2 加 stderr 阻断），Kiro 用 PreToolUse 写闸门。判定逻辑只有一份，各宿主适配器只负责说清「哪些工具算写、路径在哪个字段」，所以几家的判定结果不会互相漂移。每个闸门都 fail-closed：找不到测量记录、解析不了输入、脚本崩溃，一律按拒绝写入处理。Codex 的多个 Hook 是并发启动的，一个拦不住另一个，所以每个闸门都得自己站得住。</p>
+
+<p class="sec-sub reveal">写闸门覆盖 Claude Code、Codex 与 Kiro：改文件之前先测量，未达门槛直接阻断。机制与适配器规则见 <a href="docs.html">文档</a>。</p>
         <figure class="agent-shot reveal">
           <img src="assets/img/run-comparison.png" width="916" height="802" alt="一次真实像素测量的三联图：左侧设计稿，中间实测渲染的页面，右侧差异热区">
           <figcaption>一次真实测量的产物：设计稿 | 实测渲染 | 差异热区，三张并排直接放进对话里。该次测量为严格 12.81%、闸门 3.62%、感知 2.00%，164 个差异区域 —— 它与首页演示用的不是同一组样本，所以数字不同。热区图只用来定位差异，所有数字都来自像素内核。</figcaption>
