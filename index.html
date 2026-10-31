@@ -350,15 +350,13 @@
 
   <!-- 工作原理 -->
 <!-- AGENT 接入 -->
-<section class="section" id="agent">
+<section class="section section-alt" id="agent">
 <div class="container">
 <span class="eyebrow reveal">接入你的 Agent</span>
 <h2 class="sec-title reveal">让 Agent 自己量，而不是自己说</h2>
 <p class="sec-sub reveal">
-DiffCycle 以两种形态接入你的编码 Agent：MCP 工具面提供「量」的能力，写闸门（Hook）提供「不许含糊」的约束。
-模型负责提议改法，DiffCycle 负责裁决——模型永远不能自己宣布完成。
-</p>
-<p class="sec-sub reveal">每个宿主一个安装器：幂等、改动前自动备份、不写入任何凭据值，动手前先 <code>--dry-run</code> 预览。安装位置与参数见 <a href="docs.html">文档</a>。</p>
+        DiffCycle 以两种形态接入你的编码 Agent：MCP 工具面提供「量」的能力，写闸门（Hook）提供「不许含糊」的约束。模型负责提议改法，DiffCycle 负责裁决——模型永远不能自己宣布完成。每个宿主一个安装器，幂等、改动前自动备份、不写入任何凭据值；写闸门覆盖 Claude Code、Codex 与 Kiro，改文件之前先测量，未达门槛直接阻断。安装位置、参数与机制见 <a href="docs.html">文档</a>。</p>
+
 <ol class="steps">
 <li class="step reveal"><span class="step-no">01</span><div class="step-body">
 <h3>Codex</h3>
@@ -385,13 +383,14 @@ DiffCycle 以两种形态接入你的编码 Agent：MCP 工具面提供「量」
 <p>Gemini CLI、OpenCode、Roo Code、Zed、Windsurf / Devin Desktop 的 Cascade 都支持 MCP，只是配置文件各不一样：<code>~/.gemini/settings.json</code>、<code>opencode.json</code>、<code>.roo/mcp.json</code>、<code>~/.config/zed/settings.json</code>、<code>~/.codeium/windsurf/mcp_config.json</code>。</p>
 </div></li>
 </ol>
-<p class="sec-sub reveal">
-装完怎么开始？把这句话粘给你的 Agent：<code>用 diffcycle_measure 量一下这个页面和设计稿的差异，把 diff 和 withinGate 给我</code>。
-Agent 在别处问过「哪里不一样」「跟设计稿对一下」也会自动用上——触发词是按用户真会说的话写的，不是按术语写的。
-现在 measure 还会把「设计稿 | 实测渲染 | 差异热区」三联图直接放进对话里，差异一眼可见，不必自己去开 PNG。</p>
-        <p class="sec-sub reveal">完整的安装步骤、参数表、判定规则与故障排查，<a href="docs.html">看文档</a>。</p>
+        <div class="prompt-note reveal">
+          <span class="prompt-note-k">装完怎么开始？</span>
+          <p>完整的安装步骤、参数表、判定规则与故障排查，<a href="docs.html">看文档</a>。</p>
+        </div>
 
-<p class="sec-sub reveal">写闸门覆盖 Claude Code、Codex 与 Kiro：改文件之前先测量，未达门槛直接阻断。机制与适配器规则见 <a href="docs.html">文档</a>。</p>
+        
+
+
         <figure class="agent-shot reveal">
           <img src="assets/img/run-comparison.png" width="916" height="802" alt="一次真实像素测量的三联图：左侧设计稿，中间实测渲染的页面，右侧差异热区">
           <figcaption>一次真实测量的产物：设计稿 | 实测渲染 | 差异热区，三张并排直接放进对话里。该次测量为严格 12.81%、闸门 3.62%、感知 2.00%，164 个差异区域 —— 它与首页演示用的不是同一组样本，所以数字不同。热区图只用来定位差异，所有数字都来自像素内核。</figcaption>

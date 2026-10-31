@@ -691,3 +691,40 @@ a.foot-item {
 a.foot-item:hover {
   color: var(--text);
 }
+
+/* ---------------------------------------------------------- Agent 板块的起始提示条 */
+.prompt-note {
+  margin-top: 26px;
+  padding: 16px 18px;
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--brand);
+  border-radius: var(--radius-sm);
+  background: var(--panel);
+}
+
+.prompt-note-k {
+  display: block;
+  margin-bottom: 7px;
+  font-size: 12.5px;
+  font-weight: 800;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--brand-3);
+}
+
+.prompt-note p {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.75;
+  color: var(--muted);
+}
+
+.prompt-note code {
+  font-family: var(--mono);
+  font-size: 13px;
+  padding: 2px 7px;
+  border-radius: 6px;
+  background: var(--panel-3);
+  border: 1px solid var(--line);
+  color: var(--text);
+}
