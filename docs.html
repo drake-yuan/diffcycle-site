@@ -1,0 +1,820 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DiffCycle 文档 — 让设计稿与代码像素级一致</title>
+<meta name="description" content="DiffCycle 官方文档：安装、MCP 工具参数表、三个差异口径与验收线判定、写闸门、CI 集成、故障排查。">
+<meta name="robots" content="index,follow">
+<link rel="icon" href="assets/img/favicon.svg">
+<link rel="stylesheet" href="assets/docs.css">
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-inner">
+    <a class="brand" href="index.html">
+      <span class="brand-mark"></span>
+      <span>DiffCycle</span>
+      <span class="brand-sub">文档</span>
+    </a>
+    <div class="nav-links">
+      <a href="index.html">返回官网</a>
+      <a href="https://github.com/drake-yuan/diffcycle-site" class="nav-cta">GitHub</a>
+    </div>
+  </div>
+</nav>
+
+<button class="toc-toggle">目录</button>
+
+<div class="wrap">
+
+  <aside class="toc" id="toc">
+    <div class="toc-title">目录</div>
+    <a href="#quickstart">快速开始</a>
+    <a href="#how-it-works">它是怎么工作的</a>
+    <a href="#install">安装</a>
+    <a href="#concepts">核心概念</a>
+    <a href="#agent-usage">在编码 Agent 里使用</a>
+    <a href="#write-gate">写闸门（Hook）</a>
+    <a href="#cli">命令行</a>
+    <a href="#ci">CI 集成</a>
+    <a href="#troubleshooting">故障排查</a>
+    <a href="#privacy">隐私与数据</a>
+    <a href="#uninstall">卸载</a>
+    <a href="#changelog">变更记录</a>
+    <div class="toc-foot">
+      <b>找不到想看的？</b>
+      <p>先看「故障排查」，12 条常见问题都给了可执行的动作。仍无解就到仓库开一条 issue。</p>
+    </div>
+  </aside>
+
+  <article class="doc">
+
+    <header class="doc-head">
+      <span class="eyebrow">DiffCycle Documentation</span>
+      <h1>DiffCycle 文档</h1>
+      <p class="lead">DiffCycle 把「页面和设计稿差多少」从一个形容词变成一个可以复算的数字：<strong>严格差异占比</strong>、<strong>门槛口径</strong>、<strong>感知口径</strong>，以及一份可以直接放进对话的三联图。本文档覆盖安装、参数、判定规则、写闸门与 CI。</p>
+      <div class="badge-row">
+        <span class="badge ok"><span class="dot"></span>文档已上线</span>
+        <span class="badge plain">版本 0.3</span>
+        <span class="badge plain">更新于 2026-10-31</span>
+        <span class="badge plain">Node.js ≥ 22</span>
+      </div>
+    </header>
+
+    <!-- ============================ 快速开始 ============================ -->
+    <section id="quickstart">
+      <h2>快速开始<a class="anchor" href="#quickstart">#</a></h2>
+
+      <p>三步：从装上到拿到第一个数字。</p>
+
+      <ol class="steps">
+        <li>
+          <strong>装上 MCP 服务</strong>
+          <p>在你的项目里跑安装器，选你正在用的那个宿主。下面以 Codex 为例，其它宿主的命令见<a href="#install">安装</a>。</p>
+          <div class="code">
+            <div class="code-head"><span class="code-lang">bash</span><button class="copy-btn">复制</button></div>
+            <pre><code>node scripts/install-codex.mjs --target .</code></pre>
+          </div>
+        </li>
+        <li>
+          <strong>确认它装对了</strong>
+          <p>安装器支持只读模式，先看清楚它要动哪些文件再让它真正动手。</p>
+          <div class="code">
+            <div class="code-head"><span class="code-lang">bash</span><button class="copy-btn">复制</button></div>
+            <pre><code>node scripts/install-codex.mjs --target . --check   # 只报告，不改任何文件
+node scripts/install-codex.mjs --target . --dry-run # 预览将要写入的内容</code></pre>
+          </div>
+        </li>
+        <li>
+          <strong>让你的 Agent 量一次</strong>
+          <p>把这句话原样粘给你的编码 Agent：</p>
+          <div class="code">
+            <div class="code-head"><span class="code-lang">text</span><button class="copy-btn">复制</button></div>
+            <pre><code>用 diffcycle_measure 量一下这个页面和设计稿的差异，把 diff 和 withinGate 给我。</code></pre>
+          </div>
+          <p>它会返回一个文本块（全部数字）和一张图片块（设计稿 | 实测渲染 | 差异热区）。<strong>数字才是结论，图片只是让你一眼看到差在哪。</strong></p>
+        </li>
+      </ol>
+
+      <div class="note">
+        <b>装的时候必须两件都装</b>
+        <p>只装 MCP 服务，Agent 不知道什么时候该用它；只装 Skill 或规则文件，Agent 会自己编一个数字出来。<strong>MCP 工具负责「量」，Skill / 规则文件负责「什么时候量」</strong>，两者缺一不可。</p>
+      </div>
+
+      <div class="ok">
+        <b>装完之后</b>
+        <p>即使你没跟 Agent 说过任何提示语，只要它听到「哪里不一样」「跟设计稿对一下」这类话，也会主动调用 DiffCycle——触发词是按用户真会说的话写的，不是按技术术语写的。</p>
+      </div>
+    </section>
+
+    <!-- ============================ 工作原理 ============================ -->
+    <section id="how-it-works">
+      <h2>它是怎么工作的<a class="anchor" href="#how-it-works">#</a></h2>
+
+      <p>DiffCycle 有四层接入，各管一段事，不要混着用：</p>
+
+      <div class="grid-2">
+        <div class="card">
+          <span class="tag">CLI</span>
+          <p><strong>干活</strong>。你自己跑，或者 CI 跑，产出数字和产物文件。</p>
+        </div>
+        <div class="card">
+          <span class="tag">MCP</span>
+          <p><strong>模型决定要不要调用</strong>。工具摆在模型面前，用不用是模型的事。</p>
+        </div>
+        <div class="card">
+          <span class="tag">Hook</span>
+          <p><strong>什么时候自动触发</strong>。改文件之前强制测量，不达标直接阻断。</p>
+        </div>
+        <div class="card">
+          <span class="tag">CI</span>
+          <p><strong>兜底</strong>。PR 上跑一遍，不达标就让流水线红。</p>
+        </div>
+      </div>
+
+      <div class="rule">
+        <span class="rule-label">闭环形态</span>
+        模型负责提议改法，DiffCycle 负责裁决。<br>
+        模型永远不能自己宣布完成——只有 <code>withinGate</code> 能宣布达标。
+      </div>
+
+      <h3>一次测量里发生了什么</h3>
+
+      <ol class="steps">
+        <li><strong>取设计稿</strong><p>本地 PNG 路径，或一个 Figma 节点链接（需要 <code>FIGMA_TOKEN</code>）。</p></li>
+        <li><strong>渲染候选页面</strong><p>把 <code>candidateUrl</code> 指向的页面渲染成位图。</p></li>
+        <li><strong>逐像素比对</strong><p>在 OKLab 色彩空间里算每像素距离，再按三套容差分别统计：严格、门槛、感知。</p></li>
+        <li><strong>聚成差异区域</strong><p>把相邻的差异像素合并成有意义的矩形块，按 added / removed / modified 分类。</p></li>
+        <li><strong>裁决</strong><p>按验收线算出 <code>withinGate</code>，写出产物文件，把数字和三联图一起交回去。</p></li>
+      </ol>
+
+      <div class="note">
+        <b>没有任何抽样</b>
+        <p>每个数字都来自完整的逐像素计算，不是估算、不是抽样、不是模型看图看出来的。</p>
+      </div>
+    </section>
+
+    <!-- ============================ 安装 ============================ -->
+    <section id="install">
+      <h2>安装<a class="anchor" href="#install">#</a></h2>
+
+      <h3>先决条件</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>项</th><th>要求</th><th>说明</th></tr></thead>
+          <tbody>
+            <tr><td class="mono">Node.js</td><td>≥ 22</td><td>安装器用 Node 绝对路径调用，避免宿主 PATH 里没有 node。</td></tr>
+            <tr><td class="mono">FIGMA_TOKEN</td><td>可选</td><td>只有要直接拉 Figma 节点时才需要；从本地 PNG 比对完全不需要。</td></tr>
+            <tr><td class="mono">宿主</td><td>其一</td><td>Codex / Claude Code / Cursor / Cascade / Kiro，或任何支持 MCP 的宿主。</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>一条命令</h3>
+      <p>每个宿主一个安装器，命令形状完全一样：</p>
+      <div class="code">
+        <div class="code-head"><span class="code-lang">bash</span><button class="copy-btn">复制</button></div>
+        <pre><code>node scripts/install-claude-code.mjs --target .
+node scripts/install-codex.mjs       --target .
+node scripts/install-cursor.mjs       --target .
+node scripts/install-cascade.mjs      --target .
+node scripts/install-kiro.mjs         --target .</code></pre>
+      </div>
+
+      <h4>安装器的共同行为</h4>
+      <ul>
+        <li><strong>幂等</strong>：已经是目标状态时什么都不做，不会产生多余改动。</li>
+        <li><strong>改前备份</strong>：要动既有配置时，先备份到 <code>.diffcycle/backup/</code>。</li>
+        <li><strong>不破坏邻居</strong>：只增改自己那一段，别人的配置原样保留。</li>
+        <li><strong>不写凭据值</strong>：只声明环境变量名，取值由宿主环境继承。</li>
+        <li><strong>可先看再动</strong>：<code>--dry-run</code> 预览，<code>--check</code> 只报告当前状态。</li>
+      </ul>
+
+      <div class="warn">
+        <b>凭据值永远不进代码库</b>
+        <p>安装器写进配置的是变量名（例如 <code>FIGMA_TOKEN</code>），不是值。值请由宿主的环境变量提供。</p>
+      </div>
+
+      <h3>各宿主写到哪</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>宿主</th><th>写入位置</th><th>说明</th></tr></thead>
+          <tbody>
+            <tr>
+              <td><strong>Claude Code</strong></td>
+              <td class="mono">.mcp.json<br>.claude/skills/<br>.claude/agents/</td>
+              <td>项目级配置。首次连接需要手动批准；装完可用 <code>/diffcycle</code> 直接点名这个能力。</td>
+            </tr>
+            <tr>
+              <td><strong>Codex</strong></td>
+              <td class="mono">~/.codex/config.toml<br>AGENTS.md</td>
+              <td><code>[mcp_servers.diffcycle]</code> 段；仓库根写 <code>AGENTS.md</code>（Codex 逐层向下读取，越靠近当前目录的文件优先级越高）。</td>
+            </tr>
+            <tr>
+              <td><strong>Cursor</strong></td>
+              <td class="mono">.cursor/mcp.json<br>.cursor/rules/*.mdc</td>
+              <td>规则必须用 <code>.mdc</code>：Cursor 会忽略该目录下的普通 <code>.md</code>。</td>
+            </tr>
+            <tr>
+              <td><strong>Cascade</strong></td>
+              <td class="mono">其 MCP 配置文件</td>
+              <td>给了显式 <code>--mcp-config</code> 路径就以它为准（不存在则创建）；不给才去面板里探测，探测不到会明确提示去 <em>Actions → Open MCP config file</em>，不会瞎猜。</td>
+            </tr>
+            <tr>
+              <td><strong>Kiro</strong></td>
+              <td class="mono">工作区自定义 Agent<br>PreToolUse 写闸门</td>
+              <td>MCP 服务端在 Kiro 设置里注册；写闸门见<a href="#write-gate">写闸门</a>。</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>其它支持 MCP 的宿主</h3>
+      <p>Gemini CLI、OpenCode、Roo Code、Zed、Windsurf / Devin Desktop 的 Cascade 都支持 MCP，只是配置文件各不一样，手写一段 MCP server 配置即可：</p>
+      <div class="code">
+        <div class="code-head"><span class="code-lang">text</span><button class="copy-btn">复制</button></div>
+        <pre><code>~/.gemini/settings.json
+opencode.json
+.roo/mcp.json
+~/.config/zed/settings.json
+~/.codeium/windsurf/mcp_config.json</code></pre>
+      </div>
+    </section>
+
+    <!-- ============================ 核心概念 ============================ -->
+    <section id="concepts">
+      <h2>核心概念<a class="anchor" href="#concepts">#</a></h2>
+
+      <p>DiffCycle 一次给出三个差异占比，因为「差多少」取决于你允许多大的偏差。三个数各有用途，缺一个都会误判。</p>
+
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>口径</th><th>判定</th><th>回答的问题</th></tr></thead>
+          <tbody>
+            <tr><td class="mono">strict</td><td>任何像素差异都算差异，不给容差</td><td>「有没有一丁点不一样」</td></tr>
+            <tr><td class="mono">gate</td><td>每像素 OKLab 距离 ≤ <code>0.05</code> 才算相同</td><td>「有没有超出验收线的偏差」</td></tr>
+            <tr><td class="mono">perceptual</td><td>每像素 OKLab 距离 ≤ <code>0.2</code> 才算相同</td><td>「人眼能不能看出来」</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>阈值常量</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>常量</th><th>值</th><th>作用</th></tr></thead>
+          <tbody>
+            <tr><td class="mono">DEFAULT_LOCATING</td><td class="mono">0.01</td><td>定位容差，用于判断「同一处内容」。</td></tr>
+            <tr><td class="mono">DEFAULT_GATE</td><td class="mono">0.05</td><td>门槛口径容差。</td></tr>
+            <tr><td class="mono">DEFAULT_PERCEPTUAL</td><td class="mono">0.2</td><td>感知口径容差。</td></tr>
+            <tr><td class="mono">SSIM_WORST_MIN</td><td class="mono">0.95</td><td>最差分块 SSIM 下限。</td></tr>
+            <tr><td class="mono">SSIM_MEAN_MIN</td><td class="mono">0.985</td><td>平均 SSIM 下限。</td></tr>
+            <tr><td class="mono">REGION_MIN_PIXELS</td><td class="mono">14</td><td>区域聚合的最小像素数。</td></tr>
+            <tr><td class="mono">REGION_MIN_PIXELS_LARGE_DIFF</td><td class="mono">6</td><td>大差异区域的最小像素数。</td></tr>
+            <tr><td class="mono">REGION_CONTENT_STD</td><td class="mono">8</td><td>区域内容标准差阈值。</td></tr>
+            <tr><td class="mono">TILE_SIZE / WINDOW_SIZE</td><td class="mono">64 / 16</td><td>分块与滑窗尺寸。</td></tr>
+            <tr><td class="mono">SSIM_BLOCK</td><td class="mono">64</td><td>SSIM 计算块尺寸。</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="warn">
+        <b>关于 SSIM</b>
+        <p>这里的 SSIM 是自定义实现，<strong>不是标准化 SSIM</strong>，数值不能直接和论文或第三方工具横向比较。它在本工具内部的作用是给区域聚合提供第二个信号。</p>
+      </div>
+
+      <h3>验收线怎么判</h3>
+      <div class="rule">
+        <span class="rule-label">验收线判定式</span>
+        withinGate = (strictDiffPercentage ≤ gateThreshold × 100)<br>
+        <span style="font-family:var(--sans);font-size:13px;color:var(--muted)">默认 gateThreshold = 5，即严格差异占比不高于 5% 才算达标。</span>
+      </div>
+      <p>判定用的是<strong>严格口径</strong>：哪怕只差一点，只要严格占比超过 5% 就不达标。这是刻意的保守选择——门槛口径用来描述「偏差有多大」，验收线用来决定「能不能交付」，两件事分开。</p>
+
+      <h3>差异区域</h3>
+      <p>每个差异区域带一个矩形框、分类和像素占比：</p>
+      <ul>
+        <li><strong>added</strong>：候选页面上多出来的内容（设计稿里没有）。</li>
+        <li><strong>removed</strong>：候选页面上缺失的内容（设计稿里有）。</li>
+        <li><strong>modified</strong>：两边都有，但像素不一致。</li>
+      </ul>
+      <p>区域的 <code>share</code> 表示它<strong>占差异像素的百分比</strong>，不是占整页的百分比。</p>
+
+      <h3>产物</h3>
+      <p>一次测量会在 <code>outputDir</code>（默认 <code>.diffcycle/measurements</code>）留下五件套：</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>文件</th><th>内容</th></tr></thead>
+          <tbody>
+            <tr><td class="mono">design.png</td><td>设计稿原图</td></tr>
+            <tr><td class="mono">candidate.png</td><td>候选页面的实测渲染</td></tr>
+            <tr><td class="mono">diff.png</td><td>差异热区图（合法 PNG）</td></tr>
+            <tr><td class="mono">comparison.png</td><td>三联图：设计稿 | 实测渲染 | 差异热区</td></tr>
+            <tr><td class="mono">summary.json</td><td>全部数字与区域清单</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="note">
+        <b>三联图是定位器，不是测量器</b>
+        <p>缩放采用最近邻，不会插值造出原图里没有的颜色。图中颜色只用来告诉你「哪儿」，所有数字都来自像素内核。</p>
+      </div>
+
+      <h3>两组示例数字</h3>
+      <p>下面是两次<strong>不同运行、不同样本</strong>的结果，不要互相替换，也不要拿它们互相比较：</p>
+      <div class="grid-2">
+        <div class="card">
+          <span class="tag">示例 A · Agent 板块那张图</span>
+          <p>strict 12.81% / gate 3.62% / perceptual 2.00%<br>164 个区域（added 3、removed 11、modified 150）<br>变化像素 709,997<br><code>withinGate = false</code><br>最大区域 1440×686 位于 (0,18)，占变化像素 51.27%</p>
+        </div>
+        <div class="card">
+          <span class="tag">示例 B · 官网首页展示那次</span>
+          <p>strict 15.48% / gate 4.79% / perceptual 2.58%<br>162 个区域（added 19、removed 9、modified 134）</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================ Agent 使用 ============================ -->
+    <section id="agent-usage">
+      <h2>在编码 Agent 里使用<a class="anchor" href="#agent-usage">#</a></h2>
+
+      <h3>diffcycle_measure</h3>
+      <p>最常用的工具。一次测量，给你全部数字 + 一张三联图。</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>参数</th><th>必填</th><th>说明</th></tr></thead>
+          <tbody>
+            <tr><td class="mono">candidateUrl</td><td><span class="req">必填</span></td><td>待测页面的地址，本地 <code>http://127.0.0.1:xxxx</code> 即可。</td></tr>
+            <tr><td class="mono">designPngPath</td><td><span class="opt">二选一</span></td><td>设计稿 PNG 的本地路径。</td></tr>
+            <tr><td class="mono">designFigmaUrl</td><td><span class="opt">二选一</span></td><td>Figma 节点链接，需要 <code>FIGMA_TOKEN</code>。</td></tr>
+            <tr><td class="mono">outputDir</td><td><span class="opt">可选</span></td><td>产物目录，默认 <code>.diffcycle/measurements</code>。</td></tr>
+            <tr><td class="mono">includeImage</td><td><span class="opt">可选</span></td><td>是否把三联图放进对话，默认开。</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="code">
+        <div class="code-head"><span class="code-lang">json</span><button class="copy-btn">复制</button></div>
+        <pre><code>{
+  "candidateUrl": "http://127.0.0.1:8899/index.html",
+  "designPngPath": "D:/design/checkout.png"
+}</code></pre>
+      </div>
+      <div class="code">
+        <div class="code-head"><span class="code-lang">json</span><button class="copy-btn">复制</button></div>
+        <pre><code>{
+  "candidateUrl": "http://127.0.0.1:8899/index.html",
+  "designFigmaUrl": "https://www.figma.com/design/xxxxx?node-id=1-2"
+}</code></pre>
+      </div>
+
+      <div class="note">
+        <b>参数形状说明</b>
+        <p>设计稿来源用<strong>扁平参数</strong>给：<code>designPngPath</code> 与 <code>designFigmaUrl</code> 二选一，不需要嵌套结构，也不需要记判别器。<code>outputDir</code> 可以省略。</p>
+      </div>
+
+      <h4>返回值</h4>
+      <ul>
+        <li><strong>文本块</strong>：三个口径的差异占比、区域数与分类、变化像素数、<code>withinGate</code>、最大差异区域的坐标与占比。</li>
+        <li><strong>图片块</strong>（<code>image/png</code>）：设计稿 | 实测渲染 | 差异热区，总宽 916×802。</li>
+      </ul>
+
+      <h3>十二个工具</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>工具</th><th>用途</th></tr></thead>
+          <tbody>
+            <tr><td class="mono">diffcycle_measure</td><td>量一次差异，返回数字与三联图。</td></tr>
+            <tr><td class="mono">diffcycle_thresholds</td><td>查当前生效的阈值与判定规则。</td></tr>
+            <tr><td class="mono">d2c_get_design</td><td>取设计稿信息。</td></tr>
+            <tr><td class="mono">d2c_get_context</td><td>取与当前改动相关的上下文。</td></tr>
+            <tr><td class="mono">d2c_classify_change</td><td>判断这次改动属于哪一类。</td></tr>
+            <tr><td class="mono">d2c_check_write</td><td>写前自检。</td></tr>
+            <tr><td class="mono">d2c_preflight</td><td>开工前的准备检查。</td></tr>
+            <tr><td class="mono">d2c_verify</td><td>复核一次改动。</td></tr>
+            <tr><td class="mono">d2c_get_evidence</td><td>取证据。</td></tr>
+            <tr><td class="mono">d2c_get_run_profile</td><td>取运行画像。</td></tr>
+            <tr><td class="mono">d2c_request_approval</td><td>请求人工授权。</td></tr>
+            <tr><td class="mono">d2c_authorize_patch</td><td>授权一次补丁。</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>怎么跟 Agent 说话</h3>
+      <p>触发词是按人真会说的话写的。下面这些说法都应该能触发：</p>
+      <div class="grid-2">
+        <div class="card">
+          <span class="tag">中文</span>
+          <ul>
+            <li>「这个页面和设计稿差多少？」</li>
+            <li>「跟设计稿对一下」</li>
+            <li>「哪里不一样？」</li>
+            <li>「改完看着还是不太对」</li>
+            <li>「帮我看看有没有走样」</li>
+          </ul>
+        </div>
+        <div class="card">
+          <span class="tag">English</span>
+          <ul>
+            <li>“how far off is this from the design?”</li>
+            <li>“compare this with the Figma frame”</li>
+            <li>“does it match the design?”</li>
+            <li>“visual diff against the mockup”</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="ok">
+        <b>首次激活</b>
+        <p>把「用 diffcycle_measure 量一下这个页面和设计稿的差异，把 diff 和 withinGate 给我」粘给它一次即可。之后它自己会认得这些说法。</p>
+      </div>
+
+      <div class="note">
+        <b>关于 MCP Apps</b>
+        <p>MCP Apps 是 MCP 的官方扩展机制，允许工具声明一个交互式 UI。DiffCycle 当前返回的是标准 image content block（三联图），<strong>还没有接上 MCP Apps 的交互式 UI 这一层</strong>。图已经能直接看，交互面板是下一步。</p>
+      </div>
+    </section>
+
+    <!-- ============================ 写闸门 ============================ -->
+    <section id="write-gate">
+      <h2>写闸门（Hook）<a class="anchor" href="#write-gate">#</a></h2>
+
+      <p>写闸门是 DiffCycle 的强制层：<strong>改文件之前先测量，未达门槛直接阻断，并把理由回灌给 Agent。</strong>这样 Agent 就没法随口说一句「已经好了」。</p>
+
+      <h3>它怎么工作</h3>
+      <ol class="steps">
+        <li><strong>拦在写之前</strong><p>宿主在执行写工具之前触发闸门，闸门拿到工具名、目标路径和当前工作区。</p></li>
+        <li><strong>找最近一次测量</strong><p>在工作区里找最近一次成功的测量记录；找不到就拒绝。</p></li>
+        <li><strong>比新旧</strong><p>目标文件比那次测量新 → 说明改完没重新量 → 拒绝。</p></li>
+        <li><strong>裁决并回灌</strong><p>不达标时退出码 2，理由写进 stderr，宿主把它交回给 Agent。</p></li>
+      </ol>
+
+      <div class="rule">
+        <span class="rule-label">阻断契约</span>
+        退出码 2 + stderr 说明理由 = 阻断。<br>
+        退出码 0 = 放行。
+      </div>
+
+      <h3>一份判定，多个薄适配器</h3>
+      <p>判定逻辑集中在宿主无关的一份核心里，各宿主适配器只负责说清两件事：<strong>哪些工具算写</strong>、<strong>路径在哪个字段</strong>。这样几家宿主的判定结果不会互相漂移。</p>
+
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>宿主</th><th>算「写」的工具</th><th>路径来源</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Kiro</strong></td><td class="mono">fs_write / fs_append / str_replace / delete_file / edit_file / notebook_edit</td><td>工具入参里的路径字段（含 <code>notebook_path</code>）。</td></tr>
+            <tr><td><strong>Claude Code</strong></td><td class="mono">Write / Edit / MultiEdit / NotebookEdit</td><td>工具入参里的文件路径。</td></tr>
+            <tr><td><strong>Codex</strong></td><td class="mono">apply_patch</td><td>工具入参里没有路径，只有 patch 文本——适配器会解析出 patch 里的每一个文件路径，任一文件比测量新就整包拒绝。</td></tr>
+            <tr><td><strong>Cursor</strong></td><td>由宿主语义决定</td><td>闸门是否生效，以 Cursor 的实际行为为准。</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="warn">
+        <b>Codex：多个 Hook 是并发启动的</b>
+        <p>官方明确同一事件的多个 Hook 并发执行，一个拦不住另一个。<strong>所以每个闸门都必须自己 fail-closed</strong>，不能指望自己是唯一一个。</p>
+      </div>
+
+      <div class="warn">
+        <b>fail-closed 是什么意思</b>
+        <p>找不到测量记录、解析不了输入、脚本崩溃——一律按「拒绝写入」处理，而不是「放行」。一个坏掉的闸门看起来是健康的，实际什么也拦不住，所以宁可误拦。</p>
+      </div>
+
+      <h3>闸门的环境变量</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>变量</th><th>默认</th><th>作用</th></tr></thead>
+          <tbody>
+            <tr><td class="mono">DIFFCYCLE_GATE_DISABLED</td><td class="mono">未设置</td><td>设为 <code>1</code> 关闭闸门。</td></tr>
+            <tr><td class="mono">DIFFCYCLE_GATE_STATE</td><td class="mono">.diffcycle/gate-state.json</td><td>闸门状态文件位置。</td></tr>
+            <tr><td class="mono">DIFFCYCLE_GATE_MEASURE_DIR</td><td class="mono">.diffcycle/measurements</td><td>测量记录目录。</td></tr>
+            <tr><td class="mono">DIFFCYCLE_GATE_EXTRA_WRITE_TOOLS</td><td class="mono">空</td><td>宿主追加的写工具名。</td></tr>
+            <tr><td class="mono">DIFFCYCLE_GATE_ROOT</td><td class="mono">宿主传入</td><td>闸门的工作区根。</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>闸门日志写在工作区的 <code>.diffcycle/gate.log</code>，每次拦截都会记一笔。</p>
+
+      <h3>不想被拦？</h3>
+      <p>只装 MCP 服务、不装写闸门，Agent 照样会去量，只是没人拦它说「好了」。这是有意留的退路：临时赶进度时用 <code>DIFFCYCLE_GATE_DISABLED=1</code> 关掉，跑完记得关回来。</p>
+    </section>
+
+    <!-- ============================ CLI ============================ -->
+    <section id="cli">
+      <h2>命令行<a class="anchor" href="#cli">#</a></h2>
+
+      <p>包名 <code>@diffcycle/design-loop-cli</code>，可执行名 <code>diffcycle-design-loop</code>。CLI 适合脚本化与 CI。</p>
+
+      <h3>仓库常用脚本</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>命令</th><th>作用</th></tr></thead>
+          <tbody>
+            <tr><td class="mono">npm run build</td><td>编译（<code>tsc -b</code>）。</td></tr>
+            <tr><td class="mono">npm run smoke</td><td>冒烟。</td></tr>
+            <tr><td class="mono">npm run mcp:smoke</td><td>MCP 服务端冒烟，检查全部工具是否可用。</td></tr>
+            <tr><td class="mono">npm run p2:conformance</td><td>一致性自检。</td></tr>
+            <tr><td class="mono">npm run runprofile:conformance</td><td>运行画像自检。</td></tr>
+            <tr><td class="mono">npm run engineering-rules:conformance</td><td>工程规则自检。</td></tr>
+            <tr><td class="mono">npm run hook:install</td><td>安装 Kiro 侧的 Agent 与写闸门。</td></tr>
+            <tr><td class="mono">npm run selftest</td><td>守卫与图标自检。</td></tr>
+            <tr><td class="mono">npm run check</td><td>把上面这些串起来跑一遍。</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="note">
+        <b>跑一次完整自检</b>
+        <p><code>npm run check</code> 会依次执行 schema 生成、编译、冒烟、一致性自检与 MCP 冒烟。改完引擎先跑它。</p>
+      </div>
+    </section>
+
+    <!-- ============================ CI ============================ -->
+    <section id="ci">
+      <h2>CI 集成<a class="anchor" href="#ci">#</a></h2>
+
+      <p>CI 是最后一道兜底：不管 Agent 说了什么，流水线只看 <code>withinGate</code>。</p>
+
+      <ol class="steps">
+        <li><strong>把候选页面跑起来</strong><p>构建产物用一个本地静态服务托管，拿到一个 <code>candidateUrl</code>。</p></li>
+        <li><strong>跑一次测量</strong><p>用 CLI 或 MCP 工具跑 <code>diffcycle_measure</code>，设计稿从 PNG 或 Figma 取。</p></li>
+        <li><strong>按 withinGate 决定成败</strong><p><code>withinGate = false</code> 就让这一步失败。</p></li>
+        <li><strong>把证据传上去</strong><p>把 <code>comparison.png</code>、<code>diff.png</code> 和 <code>summary.json</code> 作为 artifact 传到流水线界面，评审时能直接看图。</p></li>
+      </ol>
+
+      <div class="rule">
+        <span class="rule-label">CI 判定式</span>
+        exit code = withinGate ? 0 : 1
+      </div>
+
+      <div class="ok">
+        <b>为什么 CI 不可省</b>
+        <p>写闸门只覆盖「本机上的 Agent 改文件」这条路径。直接 push 的改动、别人提的 PR、脚本批量改动，都只有 CI 能拦住。</p>
+      </div>
+    </section>
+
+    <!-- ============================ 故障排查 ============================ -->
+    <section id="troubleshooting">
+      <h2>故障排查<a class="anchor" href="#troubleshooting">#</a></h2>
+
+      <div class="faq">
+        <details>
+          <summary>Agent 根本不调用 DiffCycle 工具 <span class="faq-tag">触发</span></summary>
+          <div class="faq-body">
+            <p>几乎都是「只装了一半」。</p>
+            <ol>
+              <li>确认 MCP 服务注册成功：让 Agent 列出可用工具，看有没有 <code>diffcycle_measure</code>。</li>
+              <li>确认规则 / Skill 文件在位（Claude Code 的 <code>.claude/skills/</code>、Codex 的 <code>AGENTS.md</code>、Cursor 的 <code>.cursor/rules/*.mdc</code>）。</li>
+              <li>还是不动手，就把这句话直接粘给它：<em>「用 diffcycle_measure 量一下这个页面和设计稿的差异，把 diff 和 withinGate 给我。」</em></li>
+            </ol>
+          </div>
+        </details>
+
+        <details>
+          <summary>工具报参数不合法 <span class="faq-tag">参数</span></summary>
+          <div class="faq-body">
+            <p>多半在用旧的嵌套写法。现在设计稿来源用扁平参数：</p>
+            <ul>
+              <li><code>designPngPath</code>：本地 PNG 路径</li>
+              <li><code>designFigmaUrl</code>：Figma 节点链接</li>
+            </ul>
+            <p>两者二选一，<code>outputDir</code> 可以省略（默认 <code>.diffcycle/measurements</code>）。</p>
+          </div>
+        </details>
+
+        <details>
+          <summary>闸门一直拒绝写入，说找不到测量记录 <span class="faq-tag">写闸门</span></summary>
+          <div class="faq-body">
+            <ol>
+              <li>先跑一次成功的 <code>diffcycle_measure</code>——闸门依赖测量记录，没有记录它只能拒绝。</li>
+              <li>确认测量目录和闸门读的是同一个：默认都是 <code>.diffcycle/measurements</code>，不一致就用 <code>DIFFCYCLE_GATE_MEASURE_DIR</code> 指定。</li>
+              <li>看 <code>.diffcycle/gate.log</code>，里面有每次拦截的原因。</li>
+            </ol>
+          </div>
+        </details>
+
+        <details>
+          <summary>闸门装了但没生效 <span class="faq-tag">写闸门</span></summary>
+          <div class="faq-body">
+            <ol>
+              <li>宿主侧可能需要审批或信任：Codex 的非托管 Hook 需要 review + trust 才运行。</li>
+              <li>确认退出码是 <code>2</code>：只有 2 + stderr 才是阻断，其它退出码通常只警告放行。</li>
+              <li>确认 <code>stderr</code> 有内容，没有内容的拒绝等于没拒绝。</li>
+              <li>看 <code>.diffcycle/gate.log</code> 里有没有这条记录。没有 → 闸门根本没被调到，去检查宿主的 Hook 配置。</li>
+            </ol>
+          </div>
+        </details>
+
+        <details>
+          <summary>误伤了正常修改 <span class="faq-tag">写闸门</span></summary>
+          <div class="faq-body">
+            <ol>
+              <li>临时关掉：<code>DIFFCYCLE_GATE_DISABLED=1</code>。</li>
+              <li>单独跑一次 measure，看是哪些区域超标——<code>summary.json</code> 里按占比排序就能看到元凶。</li>
+              <li>确认不是流程问题：如果每次改完都没重新测量，闸门会一直认为「拿旧测量糊弄我」，这是设计如此。</li>
+            </ol>
+          </div>
+        </details>
+
+        <details>
+          <summary>差异几乎全在空白区域 <span class="faq-tag">渲染</span></summary>
+          <div class="faq-body">
+            <p>字体没加载或资源缺失导致重排。用浏览器的网络面板确认两边字体一致；这类差异通常表现为大量 added / removed 区域，而不是 modified。</p>
+          </div>
+        </details>
+
+        <details>
+          <summary>数字比我预期的严格 <span class="faq-tag">口径</span></summary>
+          <div class="faq-body">
+            <p>看的是严格口径，它不给任何容差。同时看 <code>gate</code> 与 <code>perceptual</code> 两个口径：<code>gate</code> 是验收线用的口径，<code>perceptual</code> 回答「人眼能不能看出来」。</p>
+          </div>
+        </details>
+
+        <details>
+          <summary>整体错位，怀疑是缩放或 DPR <span class="faq-tag">渲染</span></summary>
+          <div class="faq-body">
+            <p>确认两边的视口宽度与设备像素比一致。视口不同宽时，所有内容都会错位，差异会铺满整页。</p>
+          </div>
+        </details>
+
+        <details>
+          <summary>页面看起来是空的 / 只有骨架 <span class="faq-tag">渲染</span></summary>
+          <div class="faq-body">
+            <ol>
+              <li>确认 <code>candidateUrl</code> 指向的是<strong>渲染完成后的</strong>页面，不是源码目录或开发服务器的占位页。</li>
+              <li>确认页面在浏览器里手工打开是正常的。</li>
+              <li>确认不是 SPA 还没 hydration 完成——必要时等页面稳定后再测。</li>
+            </ol>
+          </div>
+        </details>
+
+        <details>
+          <summary>Figma 节点拉不下来 <span class="faq-tag">鉴权</span></summary>
+          <div class="faq-body">
+            <ol>
+              <li>确认 <code>FIGMA_TOKEN</code> 存在且对目标文件有读权限。</li>
+              <li>确认节点链接是<strong>节点</strong>链接（带 <code>node-id</code>），不是文件首页。</li>
+              <li>只是想先跑通链路的话，先用 <code>designPngPath</code> 走本地 PNG。</li>
+            </ol>
+          </div>
+        </details>
+
+        <details>
+          <summary>安装器报错或找不到 Node <span class="faq-tag">安装</span></summary>
+          <div class="faq-body">
+            <ol>
+              <li>用 Node 的<strong>绝对路径</strong>调用：<code>"C:/Program Files/nodejs/node.exe" scripts/install-codex.mjs --target .</code>。</li>
+              <li>确认版本 ≥ 22：<code>node -v</code>。</li>
+              <li>先加 <code>--check</code> 看它到底想改什么，再让它动手。</li>
+            </ol>
+          </div>
+        </details>
+
+        <details>
+          <summary>我想让 Agent 量，但不想被拦 <span class="faq-tag">写闸门</span></summary>
+          <div class="faq-body">
+            <p>只装 MCP 服务，不装写闸门。Agent 会去量，但没有人拦它宣布「已经好了」——这个取舍由你决定。</p>
+          </div>
+        </details>
+      </div>
+    </section>
+
+    <!-- ============================ 隐私 ============================ -->
+    <section id="privacy">
+      <h2>隐私与数据<a class="anchor" href="#privacy">#</a></h2>
+
+      <ul>
+        <li><strong>默认全在本机</strong>：设计稿与页面都在本地比对，产物写在本地目录。</li>
+        <li><strong>网络出口只有一处</strong>：<code>FIGMA_TOKEN</code> 仅用于从 Figma 拉取设计稿节点；不配这个变量就不会访问 Figma。</li>
+        <li><strong>不写凭据值</strong>：安装器只声明变量名，凭据由宿主环境继承，不进代码库也不进前端。</li>
+        <li><strong>需要授权的动作</strong>：<code>d2c_request_approval</code> 与 <code>d2c_authorize_patch</code> 属于显式授权类动作，不自动放行。</li>
+      </ul>
+
+      <div class="note">
+        <b>文档页里没有留任何邮箱</b>
+        <p>联系入口由站点的公开 issue 通道承担。</p>
+      </div>
+    </section>
+
+    <!-- ============================ 卸载 ============================ -->
+    <section id="uninstall">
+      <h2>卸载<a class="anchor" href="#uninstall">#</a></h2>
+
+      <ol class="steps">
+        <li><strong>删掉 MCP 注册</strong><p>从宿主配置里移除 <code>[mcp_servers.diffcycle]</code> / <code>mcpServers.diffcycle</code> 段。</p></li>
+        <li><strong>删掉规则与 Skill</strong><p>删除安装器写的 <code>.claude/skills/</code>、<code>.claude/agents/</code>、<code>.cursor/rules/*.mdc</code>、仓库根 <code>AGENTS.md</code> 中属于 DiffCycle 的段落，以及 Kiro 的工作区 Agent 与 PreToolUse 写闸门。</p></li>
+        <li><strong>删掉产物目录</strong><p><code>.diffcycle/</code>（含 <code>backup/</code>、<code>measurements/</code>、<code>gate.log</code>）。</p></li>
+        <li><strong>撤销环境变量</strong><p>移除 <code>FIGMA_TOKEN</code>、<code>DIFFCYCLE_GATE_*</code> 等。</p></li>
+      </ol>
+
+      <div class="ok">
+        <b>要回滚某一次改动</b>
+        <p>安装器改既有配置前会在 <code>.diffcycle/backup/</code> 留一份备份，直接覆盖回去即可。</p>
+      </div>
+    </section>
+
+    <!-- ============================ 变更记录 ============================ -->
+    <section id="changelog">
+      <h2>变更记录<a class="anchor" href="#changelog">#</a></h2>
+
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>版本</th><th>日期</th><th>变化</th></tr></thead>
+          <tbody>
+            <tr><td class="mono">0.3</td><td class="mono">2026-10-31</td><td>文档上线；官网导航接入本页。</td></tr>
+            <tr><td class="mono">0.2</td><td class="mono">2026-10-30</td><td><code>diffcycle_measure</code> 直接把三联图放进对话；写闸门抽成宿主无关的一份判定核心，适配器覆盖 Claude Code / Codex / Kiro。</td></tr>
+            <tr><td class="mono">0.1</td><td class="mono">2026-10-29</td><td>像素内核上线；三个差异口径与验收线判定成型；Kiro 写闸门落地。</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <div class="pager">
+      <a href="#quickstart"><span class="dir">← 回到开头</span><span class="t">快速开始</span></a>
+      <a class="next" href="#troubleshooting"><span class="dir">接着读 →</span><span class="t">故障排查</span></a>
+    </div>
+
+    <a class="to-top" href="#quickstart">↑ 回到顶部</a>
+
+    <footer class="doc-foot">
+      <p><b>DiffCycle 文档 · 版本 0.3 · 最后更新 2026-10-31</b></p>
+      <p>文档里的每个参数、路径与命令都与当前引擎实现一致；阈值与常量可以在 <code>diffcycle_thresholds</code> 工具里查到实时值。</p>
+      <p>发现问题或要提改进建议：到 <a href="https://github.com/drake-yuan/diffcycle-site/issues">仓库开一条 issue</a>。</p>
+    </footer>
+
+  </article>
+</div>
+
+<script>
+(function () {
+  var toc = document.getElementById('toc');
+  var links = toc ? toc.querySelectorAll('a[href^="#"]') : [];
+  var sections = [];
+  var i;
+
+  for (i = 0; i < links.length; i++) {
+    var el = document.getElementById(links[i].getAttribute('href').slice(1));
+    if (el) sections.push({ link: links[i], el: el });
+  }
+
+  function onScroll() {
+    var y = window.scrollY + 140;
+    var current = null;
+    for (var k = 0; k < sections.length; k++) {
+      if (sections[k].el.offsetTop <= y) current = sections[k];
+    }
+    for (var j = 0; j < sections.length; j++) {
+      sections[j].link.className = (current && sections[j] === current) ? 'active' : '';
+    }
+  }
+
+  var ticking = false;
+  window.addEventListener('scroll', function () {
+    if (ticking) return;
+    ticking = true;
+    window.requestAnimationFrame(function () { onScroll(); ticking = false; });
+  });
+  onScroll();
+
+  /* 移动端目录开关 */
+  var toggle = document.querySelector('.toc-toggle');
+  if (toggle && toc) {
+    toggle.addEventListener('click', function () {
+      var open = toc.className.indexOf('open') === -1;
+      toc.className = open ? 'toc open' : 'toc';
+      toggle.className = open ? 'toc-toggle open' : 'toc-toggle';
+    });
+  }
+
+  /* 复制代码块 */
+  var buttons = document.querySelectorAll('.copy-btn');
+  for (var b = 0; b < buttons.length; b++) {
+    buttons[b].addEventListener('click', function () {
+      var btn = this;
+      var box = btn.parentNode.parentNode;
+      var code = box.querySelector('pre');
+      if (!code) return;
+      var text = code.innerText;
+      var done = function () {
+        btn.className = 'copy-btn done';
+        btn.textContent = '已复制';
+        window.setTimeout(function () { btn.className = 'copy-btn'; btn.textContent = '复制'; }, 1600);
+      };
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(done, function () { btn.textContent = '复制失败'; });
+      } else {
+        var ta = document.createElement('textarea');
+        ta.value = text;
+        document.body.appendChild(ta);
+        ta.select();
+        try { document.execCommand('copy'); done(); } catch (e) { btn.textContent = '复制失败'; }
+        document.body.removeChild(ta);
+      }
+    });
+  }
+})();
+</script>
+
+</body>
+</html>
