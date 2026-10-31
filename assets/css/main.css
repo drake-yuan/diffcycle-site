@@ -669,3 +669,14 @@ h1 .grad {
 .agent-shot{margin:28px 0 0;padding:14px;border:1px solid rgba(255,255,255,.14);border-radius:14px;background:rgba(255,255,255,.03)}
 .agent-shot img{display:block;width:100%;height:auto;border-radius:8px}
 .agent-shot figcaption{margin-top:12px;font-size:13px;line-height:1.7;color:#9aa4b2}
+
+/* the docs entry became a real link */
+a.nav-quiet {
+  color: var(--muted);
+  text-decoration: none;
+  transition: color .18s ease;
+}
+
+a.nav-quiet:hover {
+  color: var(--text);
+}
