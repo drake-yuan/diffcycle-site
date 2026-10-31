@@ -140,6 +140,7 @@
   });
 
   /* ---------- 8. 「免费开始」：早鸟登记（三级投递：本地端点 → 静态表单 → mailto） ---------- */
+    var REPO_ISSUES = 'https://github.com/drake-yuan/diffcycle-site/issues';
     var leadForm = document.getElementById('leadForm');
     var leadStatus = document.getElementById('leadStatus');
     if (leadForm && leadStatus) {
@@ -153,11 +154,7 @@
           return;
         }
         var hp = leadForm.querySelector('input[name="bot-field"]');
-        if (hp && hp.value) {
-          leadStatus.textContent = '已登记：' + email + '，开通方式会发到你的邮箱';
-          leadForm.reset();
-          return;
-        }
+        if (hp && hp.value) { return; }
         if (window.location.protocol === 'file:') {
           leadStatus.textContent = '请用 node web/serve.mjs 打开本站在提交登记';
           leadStatus.classList.add('is-error');
@@ -167,8 +164,6 @@
         if (btn) btn.disabled = true;
         leadStatus.classList.remove('is-error');
         leadStatus.textContent = '提交中…';
-        var formName = leadForm.getAttribute('name') || 'lead';
-        var localReject = '';
         fetch('/api/early-access', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -177,48 +172,38 @@
           if (!r.ok) throw new Error('no-local-endpoint');
           return r.json();
         }).then(function (d) {
-          if (d && d.ok === false) {
-            localReject = d.error || '提交失败';
-            throw new Error('local-reject');
-          }
-          return true;
-        }).catch(function (err) {
-          if (localReject) throw err;
-          var body = new URLSearchParams();
-          body.append('form-name', formName);
-          body.append('email', email);
-          body.append('source', 'web-cta');
-          return fetch('/', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-            body: body.toString()
-          }).then(function (r) {
-            if (!r.ok) return false;
-            return r.text().then(function (t) {
-              return t.indexOf('<title>DiffCycle') === -1;
-            }).catch(function () { return false; });
-          }).catch(function () { return false; });
-        }).then(function (ok) {
-          if (!ok) throw new Error('no-static-form');
+          if (d && d.ok === false) throw new Error('local-reject');
           leadStatus.textContent = '已登记：' + email + '，开通方式会发到你的邮箱';
           leadForm.reset();
-        }).catch(function (err) {
-          leadStatus.classList.add('is-error');
-          if (localReject) {
-            leadStatus.textContent = '登记失败：' + localReject;
-            return;
+        }).catch(function () {
+          // A static host cannot process the form: GitHub Pages answers POST / with
+          // 405 and never runs the Netlify function. Open a prefilled GitHub issue
+          // instead, and say plainly what happened rather than claiming success.
+          var url = REPO_ISSUES + '/new?title=' + encodeURIComponent('早鸟登记：' + email) +
+            '&body=' + encodeURIComponent('邮箱：' + email + '\n\n（站点当前为静态托管，登记请求通过这条 issue 送达。）');
+          var win = window.open(url, '_blank');
+          if (win) {
+            leadStatus.textContent = '已打开 GitHub 的新建 issue 页面，请确认后提交。站点本身不保存你的邮箱。';
+            leadForm.reset();
+          } else {
+            leadStatus.classList.add('is-error');
+            leadStatus.textContent = '登记通道未接上（站点是静态托管）。请到 ' + REPO_ISSUES + ' 提一条 issue。';
           }
-          leadStatus.textContent = '提交未成功，请刷新后重试；若持续失败，请用页面底部的邮箱直接联系我们。';
         });
       });
     }})();
 /* ---------- 9. 页脚联系邮箱：运行时从服务端取，代码库与前端 JS 里都不出现 ---------- */
 (function () {
+  var REPO_ISSUES = 'https://github.com/drake-yuan/diffcycle-site/issues';
   var el = document.getElementById('footContact');
   if (!el) return;
   if (window.location.protocol === 'file:') return;
   fetch('/api/contact', { headers: { 'Accept': 'application/json' } })
     .then(function (r) { return r.ok ? r.json() : null; })
     .then(function (d) { if (d && d.ok && d.email) el.textContent = '联系：' + d.email; })
-    .catch(function () { /* 服务端未配置 LEAD_MAIL 时保持空白 */ });
+    .catch(function () {
+      // No server side endpoint on a static host, so point at a channel that works.
+      el.textContent = '联系：GitHub Issues';
+      if (el.tagName && el.tagName.toLowerCase() === 'a') { el.href = REPO_ISSUES; }
+    });
 })();
