@@ -57,7 +57,7 @@
       <h1>DiffCycle 文档</h1>
       <p class="lead">DiffCycle 把「页面和设计稿差多少」从一个形容词变成一个可以复算的数字：<strong>严格差异占比</strong>、<strong>门槛口径</strong>、<strong>感知口径</strong>，以及一份可以直接放进对话的三联图。本文档覆盖安装、参数、判定规则、写闸门与 CI。</p>
       <p class="doc-meta">
-        <span>版本 0.4</span>
+        <span>版本 0.5</span>
         <span>更新于 2026-11-01</span>
         <span>需要 Node.js ≥ 22</span>
       </p>
@@ -225,7 +225,7 @@ node scripts/install-kiro.mjs         --target .</code></pre>
             <tr>
               <td><strong>Kiro</strong></td>
               <td class="mono">工作区自定义 Agent<br>PreToolUse 写闸门</td>
-              <td>MCP 服务端在 Kiro 设置里注册；写闸门见<a href="#write-gate">写闸门</a>。</td>
+              <td>MCP 服务端在 Kiro 设置里注册：<code>~/.kiro/settings/mcp.json</code> 里加 <code>mcpServers.diffcycle</code>，<code>~/.kiro/settings/permissions.yaml</code> 里放行 <code>mcp diffcycle/*</code>，触发词 steering 放 <code>~/.kiro/steering/diffcycle.md</code>。写闸门见<a href="#write-gate">写闸门</a>。</td>
             </tr>
           </tbody>
         </table>
@@ -505,7 +505,7 @@ opencode.json
         <table>
           <thead><tr><th>宿主</th><th>算「写」的工具</th><th>路径来源</th></tr></thead>
           <tbody>
-            <tr><td><strong>Kiro</strong></td><td class="mono">fs_write / fs_append / str_replace / delete_file / edit_file / notebook_edit</td><td>工具入参里的路径字段（含 <code>notebook_path</code>）。</td></tr>
+            <tr><td><strong>Kiro</strong></td><td class="mono">fs_write / fs_append / str_replace / delete_file / edit_file / notebook_edit / execute_pwsh / execute_bash</td><td>工具入参里的路径字段（含 <code>notebook_path</code>）。</td></tr>
             <tr><td><strong>Claude Code</strong></td><td class="mono">Write / Edit / MultiEdit / NotebookEdit</td><td>工具入参里的文件路径。</td></tr>
             <tr><td><strong>Codex</strong></td><td class="mono">apply_patch</td><td>工具入参里没有路径，只有 patch 文本——适配器会解析出 patch 里的每一个文件路径，任一文件比测量新就整包拒绝。</td></tr>
             <tr><td><strong>Cursor</strong></td><td>由宿主语义决定</td><td>闸门是否生效，以 Cursor 的实际行为为准。</td></tr>
@@ -559,7 +559,7 @@ opencode.json
             <tr><td class="mono">npm run p2:conformance</td><td>一致性自检。</td></tr>
             <tr><td class="mono">npm run runprofile:conformance</td><td>运行画像自检。</td></tr>
             <tr><td class="mono">npm run engineering-rules:conformance</td><td>工程规则自检。</td></tr>
-            <tr><td class="mono">npm run hook:install</td><td>安装 Kiro 侧的 Agent 与写闸门。</td></tr>
+            <tr><td class="mono">npm run hook:install</td><td>安装 Kiro 侧的 Agent 与写闸门，写入<strong>当前工作区</strong>的 <code>.kiro/</code>；用户级配置（<code>~/.kiro/settings/</code>）不代写，需按上表手动合并。</td></tr>
             <tr><td class="mono">npm run selftest</td><td>守卫与图标自检。</td></tr>
             <tr><td class="mono">npm run check</td><td>把上面这些串起来跑一遍。</td></tr>
           </tbody>
@@ -764,6 +764,7 @@ opencode.json
         <table>
           <thead><tr><th>版本</th><th>日期</th><th>变化</th></tr></thead>
           <tbody>
+            <tr><td class="mono">0.5</td><td class="mono">2026-11-01</td><td>Kiro 接入细节与实测对齐：补 MCP 注册与权限放行的真实落点（<code>~/.kiro/settings/</code>）、补写闸门覆盖的两个 shell 工具、标明安装器只写工作区。</td></tr>
             <tr><td class="mono">0.4</td><td class="mono">2026-11-01</td><td>新增「购买与授权」：档位、额度口径、授权码机制与支付通道现状；官网定价页给出可读的价格与档位。</td></tr>
             <tr><td class="mono">0.3</td><td class="mono">2026-10-31</td><td>文档上线；官网导航接入本页。</td></tr>
             <tr><td class="mono">0.2</td><td class="mono">2026-10-30</td><td><code>diffcycle_measure</code> 直接把三联图放进对话；写闸门抽成宿主无关的一份判定核心，适配器覆盖 Claude Code / Codex / Kiro。</td></tr>
@@ -781,7 +782,7 @@ opencode.json
     <a class="to-top" href="#quickstart">↑ 回到顶部</a>
 
     <footer class="doc-foot">
-      <p><b>DiffCycle 文档 · 版本 0.4 · 最后更新 2026-11-01</b></p>
+      <p><b>DiffCycle 文档 · 版本 0.5 · 最后更新 2026-11-01</b></p>
       <p>文档里的每个参数、路径与命令都与当前引擎实现一致；阈值与常量可以在 <code>diffcycle_thresholds</code> 工具里查到实时值。</p>
       <p>发现问题或要提改进建议：到 <a href="https://github.com/drake-yuan/diffcycle-site/issues">仓库开一条 issue</a>。</p>
     </footer>
