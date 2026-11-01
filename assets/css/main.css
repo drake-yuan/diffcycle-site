@@ -143,7 +143,7 @@ img, svg { display: block; }
 .nav-links a { font-size: 14.5px; color: var(--muted); font-weight: 500; transition: color .18s ease; }
 .nav-links a:hover { color: var(--text); }
 
-.nav-actions { margin-left: auto; display: flex; align-items: center; gap: 14px; }
+.nav-actions { margin-left: auto; display: flex; align-items: center; gap: 26px; }
 .nav-quiet { font-size: 14px; color: var(--muted); display: inline-flex; align-items: center; gap: 6px; }
 
 .soon {
@@ -633,7 +633,7 @@ h1 .grad {
 }
 .lead-form input::placeholder { color: var(--faint); }
 .lead-form input:focus { outline: 2px solid var(--brand-2); outline-offset: 2px; }
-.lead-form .btn { flex: 0 0 auto; }
+.lead-form .btn { flex: 0 0 auto; height: 48px; padding: 0 24px; }
 .cta-links { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
 .cta-fine { margin: 2px 0 0; font-size: 13px; line-height: 1.75; color: var(--faint); max-width: 470px; }
 .cta-note.is-error { color: var(--bad); }
