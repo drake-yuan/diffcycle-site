@@ -33,7 +33,7 @@
 
 html {
   scroll-behavior: smooth;
-  scroll-padding-top: calc(var(--nav-h) + 24px);
+  scroll-padding-top: var(--nav-h);
   -webkit-text-size-adjust: 100%;
 }
 
@@ -257,29 +257,21 @@ code, pre, kbd { font-family: var(--mono); }
   line-height: 1.8;
 }
 
-.badge-row { display: flex; flex-wrap: wrap; gap: 8px; }
-
-.badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 5px 11px;
-  border-radius: 999px;
-  border: 1px solid var(--line);
-  background: var(--panel);
+/* the header meta line: one quiet row, no chips */
+.doc-meta {
+  margin: 0;
   color: var(--muted);
-  font-size: 12.5px;
-  font-family: var(--mono);
-  white-space: nowrap;
+  font-size: 13px;
+  line-height: 1.6;
 }
-.badge .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--brand); flex: none; }
-.badge.ok .dot { background: var(--ok); }
-.badge.warn .dot { background: var(--warn); }
-.badge.bad .dot { background: var(--bad); }
-.badge.plain { font-family: var(--sans); }
+.doc-meta span + span::before {
+  content: "·";
+  margin: 0 9px;
+  color: var(--line);
+}
 
 /* ---------------------------------------------------------- 章节 */
-.doc section { margin-bottom: 56px; scroll-margin-top: calc(var(--nav-h) + 24px); }
+.doc section { margin-bottom: 56px; }
 
 .doc section + section { padding-top: 8px; }
 

@@ -9,15 +9,16 @@
 <meta property="og:title" content="DiffCycle — 让设计稿与代码像素级一致" />
 <meta property="og:description" content="面向 AI 编码代理的视觉校验层：Figma → 代码 → 真实渲染 → 像素级 Diff → 语义化自动修复。" />
 <meta property="og:type" content="website" />
-<meta property="og:image" content="https://diffcycle.pages.dev/assets/img/og.png" />
+<meta property="og:image" content="https://drake-yuan.github.io/diffcycle-site/assets/img/og.png" />
 <meta property="og:image:width" content="1200" />
 <meta property="og:image:height" content="630" />
 <meta name="twitter:card" content="summary_large_image" />
 <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml" />
 <link rel="stylesheet" href="assets/css/main.css" />
-  <link rel="canonical" href="https://diffcycle.pages.dev/" />
-  <meta property="og:url" content="https://diffcycle.pages.dev/" />
-  <meta name="twitter:image" content="https://diffcycle.pages.dev/assets/img/og.png" />
+  <link rel="canonical" href="https://drake-yuan.github.io/diffcycle-site/" />
+<link rel="alternate" type="application/json" href="pricing.json" title="DiffCycle 机器可读定价" />
+  <meta property="og:url" content="https://drake-yuan.github.io/diffcycle-site/" />
+  <meta name="twitter:image" content="https://drake-yuan.github.io/diffcycle-site/assets/img/og.png" />
 </head>
 <body>
 <div class="bg-grid" aria-hidden="true"></div>
@@ -36,7 +37,7 @@
 
     <nav class="nav-links" id="navLinks" aria-label="主导航">
       <a href="#capabilities">能力</a>
-      <a href="#real-effect">真实效果</a>
+      <a href="#real-effect">效果对照</a>
         <a href="#proof">真实记录</a>
       <a href="#agent">Agent 接入</a>
       <a href="#how">工作原理</a>
@@ -478,46 +479,60 @@
   <section class="section" id="pricing">
     <div class="container">
       <span class="eyebrow reveal">定价</span>
-      <h2 class="sec-title reveal">早鸟期内免费使用</h2>
-      <p class="sec-sub reveal">产品仍在打磨期，个人与小团队可以免费使用完整能力。以下是已确定的形态，最终价格以正式发布为准。</p>
+      <h2 class="sec-title reveal">测量永远免费，付费买的是修复额度</h2>
+      <p class="sec-sub reveal">像素级测量在你自己的机器上跑，不限次、不计费。真正有成本的是 AI 自动修复消耗的额度、团队基线与 CI 门禁。下面每一档都写清了包含什么、按什么计价。</p>
 
       <div class="plans">
         <article class="plan reveal">
-          <span class="plan-name">试用</span>
+          <span class="plan-name">本地版</span>
           <span class="plan-price">免费</span>
-          <span class="plan-desc">完整能力不限次数，早鸟期内个人与小团队免费使用。</span>
+          <span class="plan-alt">额度每月重置，不限次测量</span>
+          <span class="plan-desc">给个人开发者：完整的测量能力，用到不想停为止。</span>
           <ul class="plan-list">
-            <li>Figma 链接 → 代码全流程</li>
-            <li>像素级 Diff 与 AI 自动修复</li>
-            <li>本地 CLI 与 API</li>
+            <li>不限次像素级 Diff 与差异区域定位</li>
+            <li>CLI、MCP 工具与写闸门 Hook</li>
+            <li>每月 30 次 AI 自动修复额度</li>
           </ul>
-          <a class="btn btn-outline btn-block" href="#start">免费开始</a>
+          <a class="btn btn-outline btn-block" href="#start" data-plan="local">免费开始</a>
         </article>
+
         <article class="plan plan-hi reveal">
-          <span class="plan-badge">即将开放</span>
-          <span class="plan-name">团队</span>
-          <span class="plan-price">待定</span>
-          <span class="plan-desc">面向设计与研发协作团队的共享空间、权限与用量管理。</span>
+          <span class="plan-badge">推荐</span>
+          <span class="plan-name">Pro</span>
+          <span class="plan-price">¥19<span class="plan-unit">/ 月</span></span>
+          <span class="plan-alt">年付 ¥199，折合 ¥16.6 / 月</span>
+          <span class="plan-desc">给每天把 AI 生成的界面当真的人：额度够用，门禁能自动化。</span>
           <ul class="plan-list">
-            <li>共享项目与团队基线</li>
-            <li>PR 检查与评论机器人</li>
-            <li>用量与审计</li>
+            <li>每月 300 次 AI 自动修复额度，超出 ¥0.08 / 次</li>
+            <li>PR 门禁与基线管理，未达门槛直接拦</li>
+            <li>语义归因与变更记录留痕</li>
           </ul>
-          <span class="btn btn-disabled btn-block">敬请期待</span>
+          <a class="btn btn-primary btn-block" href="#start" data-plan="pro">加入 Pro 早鸟名单</a>
         </article>
+
         <article class="plan reveal">
-          <span class="plan-badge">即将开放</span>
-          <span class="plan-name">私有部署</span>
-          <span class="plan-price">待定</span>
-          <span class="plan-desc">面向对代码与设计资产有合规要求的团队，支持内网部署。</span>
+          <span class="plan-name">团队</span>
+          <span class="plan-price">¥129<span class="plan-unit">/ 月</span></span>
+          <span class="plan-alt">年付 ¥1,299，含 10 个席位</span>
+          <span class="plan-desc">给设计与研发一起验收的团队：共享基线，结论可追溯。</span>
           <ul class="plan-list">
-            <li>内网私有化部署</li>
-            <li>模型与密钥自管</li>
-            <li>企业级支持</li>
+            <li>每月 2000 次 AI 自动修复额度，超出 ¥0.06 / 次</li>
+            <li>共享项目、团队基线与审计记录</li>
+            <li>优先支持与升级窗口</li>
           </ul>
-          <span class="btn btn-disabled btn-block">敬请期待</span>
+          <a class="btn btn-outline btn-block" href="#start" data-plan="team">预约团队开通</a>
         </article>
       </div>
+
+      <div class="plan-wide reveal">
+        <div class="plan-wide-copy">
+          <span class="plan-name">私有部署</span>
+          <p>代码与设计资产不能出内网时用：一买断，¥6,800 起，年维护 15%（¥1,020 / 年）。含内网部署、模型与密钥自管、企业级支持。</p>
+        </div>
+        <a class="btn btn-outline" href="#start" data-plan="onprem">预约沟通</a>
+      </div>
+
+      <p class="pricing-fine reveal">上表是当前公开的定价口径：支付通道开放后按此价格执行，开放前不收款，先登记意向。学生与开源项目：说明用途后可以给长期免费额度。<a href="docs.html#pricing">额度与授权规则</a> · <a href="pricing.json">机器可读定价</a></p>
     </div>
   </section>
 
@@ -530,7 +545,16 @@
           <p>给 AI 编码代理一份可验证的视觉基准，让它自己跑完生成、比对与修复的闭环。</p>
         </div>
         <div class="cta-actions">
-          <form class="lead-form" id="leadForm" name="lead" method="POST" action="/" data-netlify="true" netlify netlify-honeypot="bot-field" novalidate>
+          <div class="lead-pick">
+            <label for="leadPlan">想先看哪一档</label>
+            <select id="leadPlan" name="plan">
+              <option value="local">本地版（免费）</option>
+              <option value="pro">Pro · ¥19 / 月</option>
+              <option value="team">团队 · ¥129 / 月</option>
+              <option value="onprem">私有部署 · ¥6,800 买断</option>
+            </select>
+          </div>
+          <form class="lead-form" id="leadForm" name="lead" method="POST" action="/" novalidate>
             <label class="visually-hidden" for="leadEmail">邮箱</label>
             <input id="leadEmail" name="email" type="email" autocomplete="email" placeholder="你的邮箱" required />
             <input type="hidden" name="form-name" value="lead" />
@@ -540,9 +564,10 @@
           </form>
         <p class="form-note">站点目前托管在静态站上，表单没有后端在收。提交会打开 GitHub 的新建 issue 页面，你的邮箱只出现在那条 issue 里，站点不保存它。</p>
           <div class="cta-links">
-          <p class="cta-fine">登记只保存你的邮箱与来源渠道，用于发送开通方式；信息存放在本站托管服务商的表单后台，不做营销分发、不共享给第三方。本站不使用 Cookie 与第三方统计。</p>
-            <a class="btn btn-outline" href="#real-effect">看实际效果</a>
-            <span class="cta-note" id="leadStatus" role="status">无需信用卡 · 早鸟期内免费</span>
+          <p class="cta-fine">登记只保存你的邮箱、所选档位与来源渠道，用于发送开通方式；信息存放在本站托管服务商的表单后台，不做营销分发、不共享给第三方。本站不使用 Cookie 与第三方统计。</p>
+            <a class="btn btn-outline" href="#pricing">看价格与授权规则</a>
+            <a class="btn btn-outline" href="#proof">看实际效果</a>
+            <span class="cta-note" id="leadStatus" role="status">无需信用卡 · 本地版永久免费</span>
           </div>
           <p class="cta-fine">当前试用版范围：单个 Figma Frame（链接需含 node-id）→ 单文件静态 HTML + 内嵌 CSS → 真实浏览器渲染与像素级 Diff → 语义化修复后复检，全程在本机运行，需自备 Figma Token 与支持视觉输入的模型。CI / PR 门禁与设计系统识别在路线图中。</p>
         </div>
@@ -566,7 +591,7 @@
         <h4>产品</h4>
         <ul>
           <li><a href="#capabilities">核心能力</a></li>
-          <li><a href="#real-effect">真实效果</a></li>
+          <li><a href="#real-effect">效果对照</a></li>
           <li><a href="#how">工作原理</a></li>
           <li><a href="#cases">使用场景</a></li>
           <li><a href="#pricing">定价</a></li>
@@ -587,6 +612,8 @@
           <li><a class="foot-item" href="docs.html">文档</a></li>
           <li><a class="foot-item" href="docs.html#agent-usage">MCP 服务</a></li>
           <li><a class="foot-item" href="docs.html#changelog">更新日志</a></li>
+          <li><a class="foot-item" href="pricing.json">机器可读定价</a></li>
+          <li><a class="foot-item" href="llms.txt">站点导览</a></li>
           <li><span class="foot-item">博客</span></li>
         </ul>
       </div>

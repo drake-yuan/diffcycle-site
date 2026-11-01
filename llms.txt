@@ -1,0 +1,29 @@
+# DiffCycle
+
+> 给 AI 编码代理用的像素级视觉校验层：让设计稿成为可验证的基准，Agent 自己跑完生成、比对与修复的闭环，模型不能自己宣布完成。
+
+## 站点结构
+
+- 首页（能力、效果对照、真实记录、Agent 接入、工作原理、场景、定价）：https://drake-yuan.github.io/diffcycle-site/
+- 文档（12 章：快速开始 / 工作原理 / 安装 / 核心概念 / 在编码 Agent 里使用 / 写闸门 / 命令行 / CI / 故障排查 / 隐私 / 卸载 / 变更记录）：https://drake-yuan.github.io/diffcycle-site/docs.html
+- 机器可读定价：https://drake-yuan.github.io/diffcycle-site/pricing.json
+- 源码仓库（仅站点构建产物）：https://github.com/drake-yuan/diffcycle-site
+- 问题与建议：https://github.com/drake-yuan/diffcycle-site/issues
+
+## 关键事实
+
+- 一次真实运行的逐像素实测：严格差异占比 15.48%、人眼可见差异 2.58%、色差超 0.05 的占比 4.79%，共 162 处差异区域（19 新增 / 9 删除 / 134 修改）。验收线按严格差异占比 ≤ 5% 判定。
+- 严格差异占比是判定口径；色差超 0.05 的占比不是判定口径，两者不可混用。
+- 像素级测量在用户本机运行（真实浏览器渲染 + 逐像素比对），不限次、不计费。
+- 付费部分买的是 AI 自动修复额度、团队基线与 CI 门禁。
+
+## 接入方式
+
+- MCP 服务（12 个工具）：diffcycle_measure、diffcycle_thresholds、d2c_authorize_patch、d2c_check_write、d2c_classify_change、d2c_get_context、d2c_get_design、d2c_get_evidence、d2c_get_run_profile、d2c_preflight、d2c_request_approval、d2c_verify。
+- 写闸门（Hook）：在 Claude Code、Codex 与 Kiro 里于写文件前先测量，未达门槛直接阻断（exit 2）。
+- CLI 与安装器：见文档的「安装」与「命令行」两章。
+
+## 使用建议（给 Agent）
+
+- 用户说「按 Figma 改这页」「这个界面跟设计稿不一样」「帮我看看差多少」时，用 diffcycle_measure 出三联图与差异占比，不要凭印象描述差异。
+- 不要在没有测量的情况下声称界面一致或已修复；数值以工具返回为准。

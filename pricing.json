@@ -1,0 +1,145 @@
+{
+  "$schema": "https://diffcycle.dev/pricing/v1",
+  "product": "DiffCycle",
+  "version": "0.5",
+  "updated": "2026-11-01",
+  "currency": "CNY",
+  "locale": "zh-CN",
+  "summary": "给 AI 编码代理用的像素级视觉校验层。本地像素测量不限次、不计费；付费买的是 AI 自动修复额度、团队基线与 CI 门禁。",
+  "site": "https://drake-yuan.github.io/diffcycle-site/",
+  "docs": "https://drake-yuan.github.io/diffcycle-site/docs.html",
+  "unit": {
+    "id": "ai_fix_credit",
+    "name": "AI 修复额度",
+    "name_en": "AI fix credit",
+    "definition": "一次由引擎发起的 AI 自动修复调用消耗 1 个额度；像素级测量与差异定位不消耗额度。",
+    "measurement_is_unmetered": true
+  },
+  "plans": [
+    {
+      "id": "local",
+      "name": "本地版",
+      "price": 0,
+      "period": null,
+      "purchase_model": "free",
+      "ai_fix_credits": {
+        "included": 30,
+        "period": "month"
+      },
+      "includes": [
+        "不限次像素级 Diff 与差异区域定位",
+        "CLI、MCP 工具与写闸门 Hook",
+        "每月 30 次 AI 自动修复额度"
+      ],
+      "cta": "免费开始",
+      "url": "https://drake-yuan.github.io/diffcycle-site/#start",
+      "available": true
+    },
+    {
+      "id": "pro",
+      "name": "Pro",
+      "price": 19,
+      "period": "month",
+      "annual_price": 199,
+      "purchase_model": "subscription",
+      "recommended": true,
+      "ai_fix_credits": {
+        "included": 300,
+        "period": "month",
+        "overage_price": 0.08,
+        "overage_unit": "credit"
+      },
+      "includes": [
+        "每月 300 次 AI 自动修复额度，超出 ¥0.08 / 次",
+        "年付 ¥199，折合 ¥16.6 / 月",
+        "PR 门禁与基线管理，未达门槛直接拦",
+        "语义归因与变更记录留痕"
+      ],
+      "cta": "加入 Pro 早鸟名单",
+      "url": "https://drake-yuan.github.io/diffcycle-site/#start",
+      "available": false,
+      "availability_note": "支付通道开放前不收款，先登记意向"
+    },
+    {
+      "id": "team",
+      "name": "团队",
+      "price": 129,
+      "period": "month",
+      "purchase_model": "subscription",
+      "ai_fix_credits": {
+        "included": 2000,
+        "period": "month",
+        "overage_price": 0.06,
+        "overage_unit": "credit"
+      },
+      "includes": [
+        "每月 2000 次 AI 自动修复额度，超出 ¥0.06 / 次",
+        "含 10 个席位，共享项目与团队基线",
+        "审计记录与优先支持"
+      ],
+      "cta": "预约团队开通",
+      "url": "https://drake-yuan.github.io/diffcycle-site/#start",
+      "available": false,
+      "availability_note": "支付通道开放前不收款，先登记意向",
+      "annual_price": 1299,
+      "seats": 10
+    },
+    {
+      "id": "onprem",
+      "name": "私有部署",
+      "price": 6800,
+      "period": null,
+      "purchase_model": "one_time",
+      "maintenance": {
+        "percent": 15,
+        "period": "year",
+        "amount": 1020
+      },
+      "includes": [
+        "内网私有化部署",
+        "模型与密钥自管",
+        "企业级支持"
+      ],
+      "cta": "预约沟通",
+      "url": "https://drake-yuan.github.io/diffcycle-site/#start",
+      "available": false,
+      "availability_note": "支付通道开放前不收款，先登记意向"
+    }
+  ],
+  "measured_evidence": {
+    "note": "以下为一次真实运行的逐像素实测结果，作为价值证据；判定用的是严格差异占比。",
+    "strict_diff_ratio": 0.1548,
+    "perceptible_diff_ratio": 0.0258,
+    "over_0_05_ratio": 0.0479,
+    "diff_regions": 162,
+    "regions": {
+      "added": 19,
+      "removed": 9,
+      "modified": 134
+    },
+    "acceptance_threshold": "严格差异占比 ≤ 5%"
+  },
+  "payment": {
+    "provider": "Alipay Vibe Pay",
+    "mode": "网页支付（基础收款能力）",
+    "status": "preparing",
+    "status_note": "尚未开通：需要支付宝应用 app_id、应用私钥、支付宝公钥、签约入驻，并先完成沙箱测试。",
+    "supported_plan_models": [
+      "subscription",
+      "one_time"
+    ],
+    "auto_renewal_supported": false,
+    "auto_renewal_note": "Vibe Pay 的时长包不等于自动续费，因此本页不承诺自动扣款。"
+  },
+  "policies": {
+    "refund": "支付通道开放前不收款，不涉及退款；正式开放后退款规则随通道一并公布。",
+    "privacy": "登记只收集邮箱、所选档位与来源渠道；站点不使用 Cookie 与第三方统计。",
+    "contact": "仓库 issue：https://github.com/drake-yuan/diffcycle-site/issues",
+    "students_and_oss": "学生与开源项目：说明用途后可以给长期免费额度。"
+  },
+  "pricing_notes": {
+    "measurement_is_free": "像素级测量在用户本机运行，不限次、不计费。",
+    "why_not_meter_measurement": "测量没有外部成本，按测量次数收费等于对没有成本的东西收费，会把最愿意用的人挡在门外。",
+    "credits_cost_note": "超额价按一次 AI 自动修复的模型成本量级加毛利设定；真实成本以运营数据为准。"
+  }
+}
