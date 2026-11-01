@@ -16,13 +16,16 @@
  *   ALIPAY_NOTIFY_URL = 异步通知地址（可选，默认按当前 host 推导）
  *   ALIPAY_GATEWAY = 网关地址（默认正式 https://openapi.alipay.com/gateway.do）
  *   ALIPAY_SANDBOX = "1" 时走沙箱网关
+ *   （以上变量也接受官方 Skill 的 AIPAY_* 命名，二选一即可）
  */
 /* 与前端 main.js 的校验保持一致：本地部分 @ 域名.后缀（此前要求两段后缀，前端放行的 a@b.com 会被后端拒绝） */
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const MAX_EMAIL = 200;
 const MAX_LIST = 1000;
 const DEFAULT_GATEWAY = 'https://openapi.alipay.com/gateway.do';
-const SANDBOX_GATEWAY = 'https://openapi-sandbox.alipay.com/gateway.do';
+/* 新版沙箱网关地址（官方「环境升级说明」：新版沙箱与旧版完全独立，
+   旧沙箱 APPID 不能在新版沙箱调用）。控制台若显示不同地址，用 ALIPAY_GATEWAY 覆盖。 */
+const SANDBOX_GATEWAY = 'https://openapi-sandbox.dl.alipaydev.com/gateway.do';
 
 function json(data, status) {
   return new Response(JSON.stringify(data), {
@@ -40,6 +43,7 @@ function json(data, status) {
 /* ------------------------------------------------------------------ */
 
 const PAY_METHOD = 'alipay.trade.page.pay';
+const QUERY_METHOD = 'alipay.trade.query';
 const SIGN_TYPE = 'RSA2';
 
 /* 支付宝签名串：参数按 key 字典序，k=v 用 & 连接；值原样，不做 URL 编码。 */
@@ -108,13 +112,36 @@ async function rsaVerify(pem, text, signatureB64) {
   return crypto.subtle.verify({ name: 'RSASSA-PKCS1-v1_5' }, key, sig, new TextEncoder().encode(text));
 }
 
+/* 读环境变量：本项目用 ALIPAY_*；支付宝官方 Skill 用 AIPAY_*，两套都认。 */
+const PAY_ENV_ALIAS = {
+  ALIPAY_APP_ID: 'AIPAY_APP_ID',
+  ALIPAY_PRIVATE_KEY: 'AIPAY_PRIVATE_KEY',
+  ALIPAY_PUBLIC_KEY: 'AIPAY_PUBLIC_KEY',
+  ALIPAY_GATEWAY: 'AIPAY_GATEWAY',
+  ALIPAY_NOTIFY_URL: 'AIPAY_NOTIFY_URL',
+  ALIPAY_SANDBOX: 'AIPAY_SANDBOX'
+};
+
+function payEnv(env, name) {
+  if (env && env[name]) return env[name];
+  const alias = PAY_ENV_ALIAS[name];
+  return alias && env ? env[alias] : undefined;
+}
+
 function paymentConfigured(env) {
-  return !!(env.ALIPAY_APP_ID && env.ALIPAY_PRIVATE_KEY && env.ALIPAY_PUBLIC_KEY);
+  return !!(payEnv(env, 'ALIPAY_APP_ID') && payEnv(env, 'ALIPAY_PRIVATE_KEY') && payEnv(env, 'ALIPAY_PUBLIC_KEY'));
 }
 
 function gatewayOf(env) {
-  if (env.ALIPAY_GATEWAY) return env.ALIPAY_GATEWAY;
-  return env.ALIPAY_SANDBOX === '1' ? SANDBOX_GATEWAY : DEFAULT_GATEWAY;
+  const g = payEnv(env, 'ALIPAY_GATEWAY');
+  if (g) return g;
+  return payEnv(env, 'ALIPAY_SANDBOX') === '1' ? SANDBOX_GATEWAY : DEFAULT_GATEWAY;
+}
+
+/* 网关要求的 timestamp 是北京时间（yyyy-MM-dd HH:mm:ss）。
+   直接用 toISOString() 会得到 UTC，与北京时间差 8 小时，可能被判为非法请求。 */
+function shanghaiNow() {
+  return new Date(Date.now() + 8 * 3600000).toISOString().replace('T', ' ').slice(0, 19);
 }
 
 /* 订单里的档位与金额不在代码里写死：从 /pricing.json 读，单一事实来源。 */
@@ -181,20 +208,21 @@ async function handleCheckout(request, env, url) {
     body: plan.name + ' · ' + (plan.ai_fix_credits ? plan.ai_fix_credits.included + ' 次 AI 修复额度 / ' + (plan.ai_fix_credits.period === 'month' ? '月' : plan.ai_fix_credits.period) : '私有部署')
   };
   const params = {
-    app_id: env.ALIPAY_APP_ID,
+    app_id: payEnv(env, 'ALIPAY_APP_ID'),
     method: PAY_METHOD,
     charset: 'utf-8',
     sign_type: SIGN_TYPE,
     version: '1.0',
-    timestamp: new Date().toISOString().replace('T', ' ').slice(0, 19),
-    notify_url: env.ALIPAY_NOTIFY_URL || (url.origin + '/api/pay-notify'),
+    format: 'JSON',
+    timestamp: shanghaiNow(),
+    notify_url: payEnv(env, 'ALIPAY_NOTIFY_URL') || (url.origin + '/api/pay-notify'),
     return_url: url.origin + '/thanks',
     biz_content: JSON.stringify(biz)
   };
   const paramsStr = signString(params);
   let sign;
   try {
-    sign = await rsaSign(env.ALIPAY_PRIVATE_KEY, paramsStr);
+    sign = await rsaSign(payEnv(env, 'ALIPAY_PRIVATE_KEY'), paramsStr);
   } catch (e) {
     return json({ ok: false, error: '签名失败：私钥不可用' }, 500);
   }
@@ -226,41 +254,22 @@ async function handleCheckout(request, env, url) {
   return json({ ok: true, out_trade_no: no, amount: amount, subject: subject, payUrl: payUrl });
 }
 
-/* 支付宝异步通知：验签 + 核对关键字段 + 发放权益。 */
-async function handleNotify(request, env) {
-  if (request.method !== 'POST') return new Response('fail', { status: 405 });
-  const form = await request.formData();
-  const params = {};
-  for (const [k, v] of form.entries()) params[k] = String(v);
-  const sign = params.sign || '';
-  if (!sign) return new Response('fail', { status: 400 });
-  if (!env.ALIPAY_PUBLIC_KEY) return new Response('fail', { status: 503 });
-  let ok = false;
-  try {
-    ok = await rsaVerify(env.ALIPAY_PUBLIC_KEY, signString(params), sign);
-  } catch (e) {
-    ok = false;
-  }
-  if (!ok) return new Response('fail', { status: 400 });
-  if (params.app_id !== env.ALIPAY_APP_ID) return new Response('fail', { status: 400 });
-  if (params.trade_status !== 'TRADE_SUCCESS' && params.trade_status !== 'TRADE_FINISHED') {
-    return new Response('success', { status: 200 });
-  }
-  const no = params.out_trade_no || '';
-  if (!no) return new Response('fail', { status: 400 });
+/* 发货：核对订单号与金额后发授权码。异步通知与主动查单共用，避免两条路径口径不一致。
+   返回 'success' 表示处理完成（幂等），返回 'fail' 表示异常通知，必须忽略。 */
+async function fulfillOrder(env, p) {
+  const no = p.out_trade_no || '';
+  if (!no) return 'fail';
   let rec = null;
   if (env.LEADS) {
     const raw = await env.LEADS.get('order:' + no);
     if (raw) { try { rec = JSON.parse(raw); } catch (e) { rec = null; } }
   }
   // 金额必须与订单一致，否则不发放。
-  if (!rec || Number(rec.amount).toFixed(2) !== Number(params.total_amount).toFixed(2)) {
-    return new Response('fail', { status: 400 });
-  }
-  if (rec.status === 'paid') return new Response('success', { status: 200 });
+  if (!rec || Number(rec.amount).toFixed(2) !== Number(p.total_amount).toFixed(2)) return 'fail';
+  if (rec.status === 'paid') return 'success';
   rec.status = 'paid';
   rec.paidAt = new Date().toISOString();
-  rec.tradeNo = params.trade_no || '';
+  rec.tradeNo = p.trade_no || '';
   const key = licenseKey();
   rec.licenseKey = key;
   if (env.LEADS) {
@@ -271,11 +280,104 @@ async function handleNotify(request, env) {
         credits: rec.credits, creditsPeriod: rec.creditsPeriod, issuedAt: rec.paidAt
       }));
     } catch (e) {
-      return new Response('fail', { status: 500 });
+      return 'fail';
     }
   }
   await notifyLead(env, { email: rec.email, source: 'payment:' + rec.planId, ts: rec.paidAt, id: no });
+  return 'success';
+}
+
+/* 支付宝异步通知：验签 + 核对关键字段 + 发放权益。 */
+async function handleNotify(request, env) {
+  if (request.method !== 'POST') return new Response('fail', { status: 405 });
+  const form = await request.formData();
+  const params = {};
+  for (const [k, v] of form.entries()) params[k] = String(v);
+  const sign = params.sign || '';
+  if (!sign) return new Response('fail', { status: 400 });
+  const alipayPub = payEnv(env, 'ALIPAY_PUBLIC_KEY');
+  if (!alipayPub) return new Response('fail', { status: 503 });
+  let ok = false;
+  try {
+    ok = await rsaVerify(alipayPub, signString(params), sign);
+  } catch (e) {
+    ok = false;
+  }
+  if (!ok) return new Response('fail', { status: 400 });
+  if (params.app_id !== payEnv(env, 'ALIPAY_APP_ID')) return new Response('fail', { status: 400 });
+  if (params.trade_status !== 'TRADE_SUCCESS' && params.trade_status !== 'TRADE_FINISHED') {
+    return new Response('success', { status: 200 });
+  }
+  const r = await fulfillOrder(env, params);
+  if (r !== 'success') return new Response('fail', { status: 400 });
   return new Response('success', { status: 200 });
+}
+
+/* 主动查单：官方要求「异步通知 + alipay.trade.query」双重保障，
+   通知丢失时（例如商户侧短暂不可用）仍要能确认支付结果。 */
+async function handlePayQuery(request, env) {
+  if (request.method !== 'POST') return json({ ok: false, error: '方法不被允许' }, 405);
+  let body = {};
+  try { body = await request.json(); } catch (e) { return json({ ok: false, error: '请求格式错误' }, 400); }
+  const no = String(body.out_trade_no || '').trim();
+  if (!no) return json({ ok: false, error: '缺少 out_trade_no' }, 400);
+  if (!paymentConfigured(env)) return json({ ok: false, code: 'payment_not_configured', error: '支付通道尚未开通' }, 503);
+  let resp = null;
+  try {
+    resp = await alipayQuery(env, no);
+  } catch (e) {
+    return json({ ok: false, error: '查询失败：' + String((e && e.message) || e) }, 502);
+  }
+  if (!resp) return json({ ok: false, error: '查询没有返回结果' }, 502);
+  if (resp.code && resp.code !== '10000') {
+    return json({ ok: false, error: '查询未成功', code: resp.code, msg: resp.msg || null }, 502);
+  }
+  const status = resp.trade_status || 'UNKNOWN';
+  if (status === 'TRADE_SUCCESS' || status === 'TRADE_FINISHED') {
+    const r = await fulfillOrder(env, {
+      out_trade_no: resp.out_trade_no || no,
+      total_amount: resp.total_amount,
+      trade_no: resp.trade_no || ''
+    });
+    if (r !== 'success') return json({ ok: false, error: '订单核对未通过' }, 409);
+  }
+  let local = null;
+  if (env.LEADS) {
+    const raw = await env.LEADS.get('order:' + no);
+    if (raw) { try { local = JSON.parse(raw); } catch (e) { local = null; } }
+  }
+  return json({
+    ok: true,
+    out_trade_no: no,
+    trade_status: status,
+    trade_no: resp.trade_no || null,
+    total_amount: resp.total_amount || null,
+    local_status: local ? local.status : null,
+    license_key: local && local.licenseKey ? local.licenseKey : null
+  });
+}
+
+/* 调用支付宝统一收单交易查询接口（alipay.trade.query）。 */
+async function alipayQuery(env, outTradeNo) {
+  const params = {
+    app_id: payEnv(env, 'ALIPAY_APP_ID'),
+    method: QUERY_METHOD,
+    charset: 'utf-8',
+    sign_type: SIGN_TYPE,
+    version: '1.0',
+    format: 'JSON',
+    timestamp: shanghaiNow(),
+    biz_content: JSON.stringify({ out_trade_no: outTradeNo })
+  };
+  const sign = await rsaSign(payEnv(env, 'ALIPAY_PRIVATE_KEY'), signString(params));
+  const query = Object.keys(params).sort().map(function (k) {
+    return encodeURIComponent(k) + '=' + encodeURIComponent(params[k]);
+  }).join('&');
+  const res = await fetch(gatewayOf(env) + '?' + query + '&sign=' + encodeURIComponent(sign), {
+    method: 'GET', headers: { 'Accept': 'application/json' }
+  });
+  const body = await res.json();
+  return body.alipay_trade_query_response || null;
 }
 
 async function handleOrder(request, env, url) {
@@ -412,6 +514,7 @@ export default {
       if (url.pathname === '/api/contact') return await handleContact(request, env);
       if (url.pathname === '/api/checkout') return await handleCheckout(request, env, url);
       if (url.pathname === '/api/pay-notify') return await handleNotify(request, env);
+      if (url.pathname === '/api/pay-query') return await handlePayQuery(request, env);
       if (url.pathname === '/api/order') return await handleOrder(request, env, url);
       if (url.pathname === '/api/license') return await handleLicense(request, env, url);
       return await env.ASSETS.fetch(request);

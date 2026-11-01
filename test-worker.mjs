@@ -124,5 +124,105 @@ console.log('\n[8] 非 POST 的下单请求被拒');
 const res2 = await worker.fetch(new Request('https://x.test/api/checkout'), fakeEnv);
 ok('GET /api/checkout 返回 405', res2.status === 405, String(res2.status));
 
+
+console.log('\n[9] 官方口径修正项（沙箱网关 / 时区 / 变量别名 / format）');
+const sbxEnv = Object.assign({}, liveEnv, { ALIPAY_SANDBOX: '1' });
+const rsb = await worker.fetch(new Request('https://x.test/api/checkout', {
+  method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ planId: 'pro', email: 'buyer@example.com' })
+}), sbxEnv);
+const bsb = await rsb.json();
+ok('沙箱走新版沙箱网关（openapi-sandbox.dl.alipaydev.com）',
+  String(bsb.payUrl || '').indexOf('https://openapi-sandbox.dl.alipaydev.com/gateway.do') === 0, String(bsb.payUrl).slice(0, 90));
+ok('旧沙箱地址不再出现', String(bsb.payUrl || '').indexOf('openapi-sandbox.alipay.com') < 0);
+const rover = await worker.fetch(new Request('https://x.test/api/checkout', {
+  method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ planId: 'pro', email: 'buyer@example.com' })
+}), Object.assign({}, liveEnv, { ALIPAY_GATEWAY: 'https://example.test/gateway.do' }));
+const bover = await rover.json();
+ok('ALIPAY_GATEWAY 可覆盖网关', String(bover.payUrl).indexOf('https://example.test/gateway.do') === 0);
+ok('AIPAY_* 别名也算已配置', paymentConfigured({ AIPAY_APP_ID: 'x', AIPAY_PRIVATE_KEY: 'y', AIPAY_PUBLIC_KEY: 'z' }));
+const ralias = await worker.fetch(new Request('https://x.test/api/checkout', {
+  method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ planId: 'pro', email: 'buyer@example.com' })
+}), { AIPAY_APP_ID: '2021000000000000', AIPAY_PRIVATE_KEY: pkcs8, AIPAY_PUBLIC_KEY: pub,
+     LEADS: liveEnv.LEADS, ASSETS: liveEnv.ASSETS });
+const balias = await ralias.json();
+ok('用 AIPAY_* 也能拿到支付链接', typeof balias.payUrl === 'string' && balias.payUrl.indexOf('app_id=2021000000000000') > 0);
+const tsParam = decodeURIComponent(String(b3.payUrl).split('timestamp=')[1].split('&')[0]);
+const utcHour = new Date().getUTCHours();
+const bjHour = Number(tsParam.slice(11, 13));
+ok('timestamp 用北京时间而非 UTC（差 8 小时）', ((utcHour + 8) % 24) === bjHour, 'timestamp=' + tsParam + ' utcHour=' + utcHour);
+ok('带 format=JSON', decodeURIComponent(b3.payUrl).indexOf('format=JSON') > 0);
+
+console.log('\n[10] 异步通知端点：验签 → 核对金额 → 发授权码');
+const kv = new Map();
+const stateEnv = {
+  ALIPAY_APP_ID: '2021000000000000', ALIPAY_PRIVATE_KEY: pkcs8, ALIPAY_PUBLIC_KEY: pub,
+  LEADS: { put: async (k, v) => { kv.set(k, v); }, get: async (k) => (kv.has(k) ? kv.get(k) : null) },
+  ASSETS: { fetch: async () => new Response(JSON.stringify(pricing), { headers: { 'Content-Type': 'application/json' } }) }
+};
+const rc = await worker.fetch(new Request('https://x.test/api/checkout', {
+  method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ planId: 'pro', email: 'buyer@example.com' })
+}), stateEnv);
+const bc = await rc.json();
+const notifyParams = {
+  notify_time: '2026-11-01 12:00:00', notify_type: 'trade_status_sync',
+  notify_id: 'test-notify-id-001', trade_no: '2026110122000000000001',
+  app_id: '2021000000000000', out_trade_no: bc.out_trade_no,
+  seller_id: '2088101106499364', subject: bc.subject,
+  trade_status: 'TRADE_SUCCESS', total_amount: bc.amount, gmt_payment: '2026-11-01 12:00:00'
+};
+const notifySign = await rsaSign(pkcs8, signString(notifyParams));
+const form = new URLSearchParams();
+for (const k of Object.keys(notifyParams)) form.set(k, notifyParams[k]);
+form.set('sign', notifySign);
+form.set('sign_type', 'RSA2');
+const rn = await worker.fetch(new Request('https://x.test/api/pay-notify', { method: 'POST', body: form }), stateEnv);
+ok('通知返回 200', rn.status === 200, String(rn.status));
+ok('通知响应体正好是 success', (await rn.text()) === 'success');
+const paidRec = JSON.parse(kv.get('order:' + bc.out_trade_no));
+ok('订单被标记为已支付', paidRec.status === 'paid', paidRec.status);
+ok('发放了授权码', /^[A-Z0-9]{8}-[A-Z0-9]{8}-[A-Z0-9]{8}$/.test(paidRec.licenseKey || ''), paidRec.licenseKey);
+ok('授权记录已落库', kv.has('license:' + paidRec.licenseKey));
+const tampered = new URLSearchParams(form);
+tampered.set('total_amount', '0.01');
+tampered.set('sign', await rsaSign(pkcs8, signString(Object.assign({}, notifyParams, { total_amount: '0.01' }))));
+const rt = await worker.fetch(new Request('https://x.test/api/pay-notify', { method: 'POST', body: tampered }), stateEnv);
+ok('金额被改但签名合法时，通知被拒（金额与订单不符）', rt.status === 400, String(rt.status));
+const badSign = new URLSearchParams(form);
+badSign.set('sign', 'not-a-signature');
+const rb = await worker.fetch(new Request('https://x.test/api/pay-notify', { method: 'POST', body: badSign }), stateEnv);
+ok('签名无效时通知被拒', rb.status === 400, String(rb.status));
+
+console.log('\n[11] 主动查单兜底（官方要求与异步通知双重保障）');
+const origFetch = globalThis.fetch;
+globalThis.__lastQueryUrl = '';
+globalThis.fetch = async (u) => {
+  const url = String(u);
+  globalThis.__lastQueryUrl = url;
+  if (url.indexOf('alipay.trade.query') < 0 && url.indexOf('gateway.do') < 0) return origFetch(u);
+  return new Response(JSON.stringify({
+    alipay_trade_query_response: {
+      code: '10000', msg: 'Success', out_trade_no: bc.out_trade_no,
+      trade_no: '2026110122000000000001', trade_status: 'TRADE_SUCCESS', total_amount: bc.amount
+    }
+  }), { headers: { 'Content-Type': 'application/json' } });
+};
+const rq = await worker.fetch(new Request('https://x.test/api/pay-query', {
+  method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ out_trade_no: bc.out_trade_no })
+}), stateEnv);
+const bq = await rq.json();
+ok('查单返回 200', rq.status === 200, JSON.stringify(bq).slice(0, 160));
+ok('查单返回交易状态 TRADE_SUCCESS', bq.trade_status === 'TRADE_SUCCESS', bq.trade_status);
+ok('查单走 alipay.trade.query 接口', decodeURIComponent(String(globalThis.__lastQueryUrl)).indexOf('method=alipay.trade.query') > 0, String(globalThis.__lastQueryUrl).slice(0, 80));
+ok('查单带签名', /[?&]sign=/.test(String(globalThis.__lastQueryUrl)));
+const rq2 = await worker.fetch(new Request('https://x.test/api/pay-query', {
+  method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({})
+}), stateEnv);
+ok('查单缺订单号返回 400', rq2.status === 400, String(rq2.status));
+const rq3 = await worker.fetch(new Request('https://x.test/api/pay-query', {
+  method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ out_trade_no: bc.out_trade_no })
+}), fakeEnv);
+ok('未配置支付时查单返回 503', rq3.status === 503, String(rq3.status));
+globalThis.fetch = origFetch;
+
 console.log('\n结果: ' + pass + ' passed, ' + fail + ' failed');
 process.exit(fail ? 1 : 0);
