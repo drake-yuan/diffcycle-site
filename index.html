@@ -4,7 +4,7 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <title>DiffCycle — 让设计稿与代码像素级一致 | 面向 AI 编码代理的视觉校验层</title>
-<meta name="description" content="DiffCycle 连接 Figma 文件与代码库：粘贴 Figma 链接即可读取设计稿、生成可维护代码，并用像素级 Diff 与语义化 AI 修复把渲染结果拉回设计稿，形成一条跑到收敛的差异闭环。以 Figma 为唯一事实来源，可接入 Cursor、Claude Code、Codex、Windsurf，并在 CI / Pull Request 中运行。" />
+<meta name="description" content="DiffCycle 连接 Figma 文件与代码库：粘贴 Figma 链接即可读取设计稿、生成可维护代码，并用像素级 Diff 与语义化 AI 修复把渲染结果拉回设计稿，形成一条跑到收敛的差异闭环。以 Figma 为唯一事实来源，可接入 Codex、Claude Code、Cursor、VS Code、Kiro，并在 CI / Pull Request 中运行。" />
 <meta name="theme-color" content="#07080C" />
 <meta property="og:title" content="DiffCycle — 让设计稿与代码像素级一致" />
 <meta property="og:description" content="面向 AI 编码代理的视觉校验层：Figma → 代码 → 真实渲染 → 像素级 Diff → 语义化自动修复。" />
@@ -47,7 +47,6 @@
 
     <div class="nav-actions">
       <a class="nav-quiet" href="docs.html">文档</a>
-      <a class="btn btn-quiet" href="#start">登录</a>
       <a class="btn btn-primary" href="#start">免费开始</a>
       <button class="nav-toggle" id="navToggle" type="button" aria-expanded="false" aria-controls="navLinks" aria-label="展开导航菜单">
         <span></span><span></span>
@@ -83,7 +82,7 @@
 
         <div class="hero-trust reveal">
           <span class="trust-label">已接入主流 AI 编程工具</span>
-          <span class="trust-list">Cursor · Claude Code · Codex · Windsurf</span>
+          <span class="trust-list">Codex · Claude Code · Cursor · VS Code · Kiro</span>
         </div>
       </div>
 
@@ -232,7 +231,7 @@
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2"/><rect x="4" y="7" width="16" height="13" rx="2"/><path d="M9 12h6"/></svg>
           </span>
           <h3>AI 工具集成</h3>
-          <p>与 Cursor、Claude Code、Codex、Windsurf 等主流 AI 编程工具协同，生成的代码自带视觉验收标准。</p>
+          <p>与 Codex、Claude Code、Cursor、VS Code、Kiro 等 AI 编程工具协同，生成的代码自带视觉验收标准。</p>
         </article>
         <article class="card reveal">
           <span class="card-ico" aria-hidden="true">
@@ -600,10 +599,12 @@
       <div class="foot-col">
         <h4>集成</h4>
         <ul>
-          <li><span class="foot-item">Cursor</span></li>
-          <li><span class="foot-item">Claude Code</span></li>
           <li><span class="foot-item">Codex</span></li>
-          <li><span class="foot-item">Windsurf</span></li>
+          <li><span class="foot-item">Claude Code</span></li>
+          <li><span class="foot-item">Cursor</span></li>
+          <li><span class="foot-item">VS Code</span></li>
+          <li><span class="foot-item">Kiro</span></li>
+          <li><span class="foot-item">其它 CLI 与编辑器</span></li>
         </ul>
       </div>
       <div class="foot-col">
