@@ -179,8 +179,10 @@
           // A static host cannot process the form: GitHub Pages answers POST / with
           // 405 and never runs the Netlify function. Open a prefilled GitHub issue
           // instead, and say plainly what happened rather than claiming success.
+          var pick = leadForm.querySelector('select[name="plan"]');
+          var plan = pick ? (pick.value || 'local') : 'local';
           var url = REPO_ISSUES + '/new?title=' + encodeURIComponent('早鸟登记：' + email) +
-            '&body=' + encodeURIComponent('邮箱：' + email + '\n\n（站点当前为静态托管，登记请求通过这条 issue 送达。）');
+            '&body=' + encodeURIComponent('邮箱：' + email + '\n意向档位：' + plan + '\n\n（站点当前为静态托管，登记请求通过这条 issue 送达。）');
           var win = window.open(url, '_blank');
           if (win) {
             leadStatus.textContent = '已打开 GitHub 的新建 issue 页面，请确认后提交。站点本身不保存你的邮箱。';
@@ -206,4 +208,86 @@
       el.textContent = '联系：GitHub Issues';
       if (el.tagName && el.tagName.toLowerCase() === 'a') { el.href = REPO_ISSUES; }
     });
+})();
+/* ---------- 11. 定价与支付 ---------- */
+(function () {
+  var select = document.getElementById('leadPlan');
+  var status = document.getElementById('leadStatus');
+  var LIVE = false;
+
+  function labelOf(plan) {
+    if (!select) return plan;
+    for (var i = 0; i < select.options.length; i++) {
+      if (select.options[i].value === plan) return select.options[i].text;
+    }
+    return plan;
+  }
+
+  function goLead(plan, msg) {
+    if (select && plan) select.value = plan;
+    if (status && msg) { status.textContent = msg; status.classList.remove('is-error'); }
+    var start = document.getElementById('start');
+    if (start && start.scrollIntoView) start.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    var email = document.getElementById('leadEmail');
+    if (email && email.focus) email.focus();
+  }
+
+  function startCheckout(planId) {
+    var email = document.getElementById('leadEmail');
+    var addr = email ? email.value.trim() : '';
+    if (!addr || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(addr)) {
+      goLead(planId, '先留个邮箱——它用来接收授权码，也用来接收开通通知');
+      return;
+    }
+    if (status) { status.textContent = '正在创建订单…'; status.classList.remove('is-error'); }
+    fetch('/api/checkout', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ planId: planId, email: addr })
+    })
+      .then(function (r) {
+        return r.json().then(function (d) { return { ok: r.ok, data: d }; });
+      })
+      .then(function (res) {
+        var d = res.data || {};
+        if (d.ok && d.payUrl) { window.location.href = d.payUrl; return; }
+        if (d.code === 'payment_not_configured') {
+          goLead(planId, '支付通道还没开。已为你预选「' + labelOf(planId) + '」，留下邮箱，开通时按这个价格给你');
+          return;
+        }
+        if (status) {
+          status.textContent = d.error || '订单没创建成功，再试一次';
+          status.classList.add('is-error');
+        }
+      })
+      .catch(function () {
+        goLead(planId, '下单接口没接上，先登记意向，我们用邮件联系你');
+      });
+  }
+
+  var buttons = document.querySelectorAll('[data-plan]');
+  Array.prototype.forEach.call(buttons, function (btn) {
+    btn.addEventListener('click', function (e) {
+      var plan = btn.getAttribute('data-plan');
+      e.preventDefault();
+      if (LIVE) { startCheckout(plan); return; }
+      if (plan === 'local') {
+        goLead('local', '');
+        return;
+      }
+      goLead(plan, '已为你预选「' + labelOf(plan) + '」。支付通道开通前先登记意向，价格按上面这一档锁');
+    });
+  });
+
+  /* 支付通道开放后（服务端 /api/pricing 里 payment.status 变成 live），
+     付费档位的按钮自动从「加入早鸟名单」切成真正的购买入口。 */
+  fetch('/api/pricing', { headers: { 'Accept': 'application/json' } })
+    .then(function (r) { return r.ok ? r.json() : null; })
+    .then(function (d) {
+      if (!d || !d.payment || d.payment.status !== 'live') return;
+      LIVE = true;
+      var btn = document.querySelector('.plan-hi [data-plan]');
+      if (btn) btn.textContent = '立即购买 · 支付宝';
+    })
+    .catch(function () { /* 静态站没有这个端点，保持早鸟登记 */ });
 })();

@@ -17,6 +17,9 @@
   --muted: #99a1b5;
   --faint: #6a7186;
 
+  /* 让浏览器原生控件（滚动条、下拉列表）也走深色 */
+  color-scheme: dark;
+
   /* 品牌 */
   --brand: #7c6cff;
   --brand-2: #4da3ff;
@@ -46,7 +49,7 @@
 
 * { box-sizing: border-box; }
 
-html { scroll-behavior: smooth; scroll-padding-top: calc(var(--nav-h) + 16px); }
+html { scroll-behavior: smooth; scroll-padding-top: var(--nav-h); }
 
 body {
   margin: 0;
@@ -512,6 +515,7 @@ h1 .grad {
 }
 .plan-name { font-size: 13px; font-weight: 750; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
 .plan-price { font-size: 34px; font-weight: 820; letter-spacing: -.02em; }
+.plan-alt { font-size: 12.5px; color: var(--faint); line-height: 1.55; margin-top: -2px; }
 .plan-desc { font-size: 14px; color: var(--muted); line-height: 1.68; min-height: 48px; }
 .plan-list { list-style: none; margin: 6px 0 20px; padding: 0; display: flex; flex-direction: column; gap: 9px; }
 .plan-list li { position: relative; padding-left: 22px; font-size: 14px; color: var(--muted); }
@@ -729,8 +733,42 @@ a.foot-item:hover {
   color: var(--text);
 }
 
-/* anchored sections must clear the fixed nav */
+/* 锚点落点只保留一处偏移：由 html 的 scroll-padding-top 统一负责
+   （原生锚点跳转与 scrollIntoView 都会用到它）。
+   之前这里还有一份 scroll-margin-top，两处相加会让落点比导航底部多空一截。 */
 section[id],
 .sec-title[id] {
-  scroll-margin-top: calc(var(--nav-h) + 24px);
+  scroll-margin-top: 0;
 }
+
+/* ---- 定价：档位单元、企业横条、说明与档位选择 ---- */
+.plan-unit { font-size: 15px; font-weight: 600; color: var(--muted); letter-spacing: 0; margin-left: 3px; }
+.plan-wide {
+  margin-top: 20px;
+  display: flex; align-items: center; justify-content: space-between; gap: 24px; flex-wrap: wrap;
+  border: 1px solid var(--line); border-radius: 16px; padding: 22px 26px; background: var(--panel);
+}
+.plan-wide-copy { max-width: 640px; }
+.plan-wide-copy p { margin: 8px 0 0; font-size: 14px; color: var(--muted); line-height: 1.7; }
+.pricing-fine { margin: 24px 0 0; font-size: 13px; color: var(--faint); line-height: 1.8; }
+.pricing-fine a { color: var(--brand-2); }
+.lead-pick { display: flex; align-items: center; gap: 10px; width: 100%; max-width: 440px; }
+.lead-pick label { font-size: 13px; color: var(--faint); white-space: nowrap; }
+/* 档位下拉：原生 select 在深色页面上会再叠一层系统边框、箭头是系统样式、
+   展开后选项列表是白底。这里改成 appearance:none + 自绘箭头，
+   高度与邮箱输入框一致（48px），选项列表压成深色。 */
+.lead-pick select {
+  flex: 1 1 auto; min-width: 0; height: 48px;
+  appearance: none; -webkit-appearance: none; -moz-appearance: none;
+  padding: 0 40px 0 14px;
+  border: 1px solid var(--line-strong); border-radius: 13px;
+  background-color: rgba(255, 255, 255, .04);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%2399a1b5' stroke-width='1.7' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 6.5 8 10.5 12 6.5'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 15px center; background-size: 14px 14px;
+  color: var(--text); font-size: 15px; font-family: inherit; line-height: 1;
+  cursor: pointer;
+  transition: border-color .18s ease, background-color .18s ease;
+}
+.lead-pick select:hover { border-color: rgba(124, 108, 255, .55); background-color: rgba(255, 255, 255, .06); }
+.lead-pick select:focus { outline: 2px solid var(--brand-2); outline-offset: 2px; }
+.lead-pick select option { background: var(--panel-2); color: var(--text); }

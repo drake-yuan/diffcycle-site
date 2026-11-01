@@ -35,6 +35,7 @@
     <a href="#how-it-works">它是怎么工作的</a>
     <a href="#install">安装</a>
     <a href="#concepts">核心概念</a>
+    <a href="#pricing">购买与授权</a>
     <a href="#agent-usage">在编码 Agent 里使用</a>
     <a href="#write-gate">写闸门（Hook）</a>
     <a href="#cli">命令行</a>
@@ -55,12 +56,11 @@
       <span class="eyebrow">DiffCycle Documentation</span>
       <h1>DiffCycle 文档</h1>
       <p class="lead">DiffCycle 把「页面和设计稿差多少」从一个形容词变成一个可以复算的数字：<strong>严格差异占比</strong>、<strong>门槛口径</strong>、<strong>感知口径</strong>，以及一份可以直接放进对话的三联图。本文档覆盖安装、参数、判定规则、写闸门与 CI。</p>
-      <div class="badge-row">
-        <span class="badge ok"><span class="dot"></span>文档已上线</span>
-        <span class="badge plain">版本 0.3</span>
-        <span class="badge plain">更新于 2026-10-31</span>
-        <span class="badge plain">Node.js ≥ 22</span>
-      </div>
+      <p class="doc-meta">
+        <span>版本 0.4</span>
+        <span>更新于 2026-11-01</span>
+        <span>需要 Node.js ≥ 22</span>
+      </p>
     </header>
 
     <!-- ============================ 快速开始 ============================ -->
@@ -333,6 +333,40 @@ opencode.json
           <p>strict 15.48% / gate 4.79% / perceptual 2.58%<br>162 个区域（added 19、removed 9、modified 134）</p>
         </div>
       </div>
+    </section>
+
+    <!-- ============================ 购买与授权 ============================ -->
+    <section id="pricing">
+      <h2>购买与授权<a class="anchor" href="#pricing">#</a></h2>
+
+      <p>测量永远免费。付费买的是 AI 自动修复的额度、团队基线与 CI 门禁——像素级比对在你自己的机器上跑，不限次、不计费。</p>
+
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>档位</th><th>价格</th><th>AI 修复额度</th><th>主要内容</th></tr></thead>
+          <tbody>
+            <tr><td>本地版</td><td>免费</td><td class="mono">30 / 月</td><td>不限次像素级 Diff 与差异定位、CLI、MCP 工具、写闸门</td></tr>
+            <tr><td>Pro</td><td class="mono">¥19 / 月（年付 ¥199）</td><td class="mono">300 / 月，超出 ¥0.08 / 次</td><td>PR 门禁与基线管理、语义归因与变更记录</td></tr>
+            <tr><td>团队</td><td class="mono">¥129 / 月（年付 ¥1,299，含 10 席位）</td><td class="mono">2000 / 月，超出 ¥0.06 / 次</td><td>共享项目与团队基线、审计记录、优先支持</td></tr>
+            <tr><td>私有部署</td><td class="mono">¥6,800 起（买断），年维护 15%（¥1,020 / 年）</td><td>按合同</td><td>内网部署、模型与密钥自管、企业级支持</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>额度怎么算</h3>
+      <p>一次由引擎发起的 AI 自动修复调用消耗 1 个额度；测量、比对、差异归因与写闸门判定都不消耗额度。额度按自然月重置，未用完的不结转。</p>
+
+      <h3>授权码怎么用</h3>
+      <p>授权码形如 <code>XXXX-XXXX-XXXX</code>，与你的邮箱绑定。首次使用在本机登记一次，之后 CLI 与 MCP 工具都带上它做额度核销；额度用尽时写闸门直接拦住新的修复请求，而不是让它悄悄跑超。</p>
+
+      <h3>支付通道现在是什么状态</h3>
+      <p>支付走支付宝的 Vibe Pay 网页支付。通道尚未开通：接入需要支付宝应用 app_id、应用私钥、支付宝公钥，并完成签约入驻与沙箱测试。所以现在登记只收集邮箱与所选档位，不收款。</p>
+      <p>通道开放后，定价页的付费按钮会自动从「加入早鸟名单」切成真正的购买入口，价格按上表执行。</p>
+
+      <h3>退款</h3>
+      <p>通道开放前不收款，因此不涉及退款。正式开放后退款规则随通道一并公布，在本页更新。</p>
+
+      <p>价格与条款也可以从机器可读的 <a href="pricing.json">pricing.json</a> 读取；站点导览见 <a href="llms.txt">llms.txt</a>。</p>
     </section>
 
     <!-- ============================ Agent 使用 ============================ -->
@@ -722,6 +756,7 @@ opencode.json
         <table>
           <thead><tr><th>版本</th><th>日期</th><th>变化</th></tr></thead>
           <tbody>
+            <tr><td class="mono">0.4</td><td class="mono">2026-11-01</td><td>新增「购买与授权」：档位、额度口径、授权码机制与支付通道现状；官网定价页给出可读的价格与档位。</td></tr>
             <tr><td class="mono">0.3</td><td class="mono">2026-10-31</td><td>文档上线；官网导航接入本页。</td></tr>
             <tr><td class="mono">0.2</td><td class="mono">2026-10-30</td><td><code>diffcycle_measure</code> 直接把三联图放进对话；写闸门抽成宿主无关的一份判定核心，适配器覆盖 Claude Code / Codex / Kiro。</td></tr>
             <tr><td class="mono">0.1</td><td class="mono">2026-10-29</td><td>像素内核上线；三个差异口径与验收线判定成型；Kiro 写闸门落地。</td></tr>
@@ -738,7 +773,7 @@ opencode.json
     <a class="to-top" href="#quickstart">↑ 回到顶部</a>
 
     <footer class="doc-foot">
-      <p><b>DiffCycle 文档 · 版本 0.3 · 最后更新 2026-10-31</b></p>
+      <p><b>DiffCycle 文档 · 版本 0.4 · 最后更新 2026-11-01</b></p>
       <p>文档里的每个参数、路径与命令都与当前引擎实现一致；阈值与常量可以在 <code>diffcycle_thresholds</code> 工具里查到实时值。</p>
       <p>发现问题或要提改进建议：到 <a href="https://github.com/drake-yuan/diffcycle-site/issues">仓库开一条 issue</a>。</p>
     </footer>

@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>DiffCycle — 支付完成，正在开通授权</title>
+<meta name="description" content="DiffCycle 支付完成，授权码正在发往你的邮箱。" />
+<link rel="icon" href="assets/img/favicon.svg" />
+<link rel="stylesheet" href="assets/css/main.css" />
+<style>
+  .thanks-wrap { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 96px 24px 72px; }
+  .thanks-box { width: 100%; max-width: 560px; }
+  .thanks-box h1 { font-size: 34px; line-height: 1.2; letter-spacing: -.02em; font-weight: 820; margin: 0 0 14px; }
+  .thanks-box p { margin: 0 0 12px; color: var(--muted); font-size: 15.5px; line-height: 1.8; }
+  .thanks-actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 26px; }
+  .thanks-query { margin-top: 30px; padding-top: 24px; border-top: 1px solid var(--line); }
+  .thanks-query label { display: block; font-size: 13px; color: var(--faint); margin-bottom: 8px; }
+  .thanks-query .row { display: flex; gap: 10px; }
+  .thanks-query input {
+    flex: 1; background: rgba(255,255,255,.03); border: 1px solid var(--line); border-radius: 11px;
+    color: var(--text); padding: 11px 13px; font-size: 14px; font-family: inherit;
+  }
+  .thanks-query input:focus { outline: 2px solid var(--brand-2); outline-offset: 2px; }
+  .thanks-status { margin-top: 12px; font-size: 13.5px; color: var(--muted); min-height: 20px; }
+  .thanks-status.is-error { color: var(--bad); }
+  .thanks-status.is-ok { color: var(--ok); }
+</style>
+</head>
+<body>
+  <main class="thanks-wrap">
+    <div class="thanks-box">
+      <span class="eyebrow reveal">DiffCycle</span>
+      <h1>支付完成，正在开通授权</h1>
+      <p>支付宝会把支付结果回传给你的邮箱，授权码（形如 <code>XXXX-XXXX-XXXX</code>）也走同一封邮件。授权码用于本机 CLI 与 MCP 的额度核销。</p>
+      <p>如果邮件没到，用下面的订单号查一次支付状态——订单号在支付宝的支付回执里，也写在你下单时提交的那条早鸟登记里。</p>
+      <div class="thanks-query">
+        <label for="tradeNo">订单号（out_trade_no）</label>
+        <div class="row">
+          <input id="tradeNo" type="text" placeholder="例如 DC20261101103012ab12cd34" autocomplete="off" />
+          <button class="btn btn-outline" type="button" id="queryBtn">查订单</button>
+        </div>
+        <p class="thanks-status" id="queryStatus" role="status"></p>
+      </div>
+      <div class="thanks-actions">
+        <a class="btn btn-primary" href="index.html">回到首页</a>
+        <a class="btn btn-outline" href="docs.html#pricing">看额度与授权规则</a>
+      </div>
+    </div>
+  </main>
+<script>
+(function () {
+  var btn = document.getElementById('queryBtn');
+  var input = document.getElementById('tradeNo');
+  var out = document.getElementById('queryStatus');
+  function say(text, cls) {
+    out.textContent = text;
+    out.className = 'thanks-status' + (cls ? ' ' + cls : '');
+  }
+  function query() {
+    var no = input.value.trim();
+    if (!no) { say('先填订单号', 'is-error'); return; }
+    say('查询中…');
+    fetch('/api/order?trade_no=' + encodeURIComponent(no), { headers: { 'Accept': 'application/json' } })
+      .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, data: d }; }); })
+      .then(function (res) {
+        var d = res.data || {};
+        if (!d.ok) { say(d.error || '没查到这个订单', 'is-error'); return; }
+        var o = d.order || {};
+        if (o.status === 'paid') { say('已支付：' + (o.planName || '') + ' · ¥' + (o.amount || '') + '，授权码已发到邮箱', 'is-ok'); }
+        else if (o.status === 'created') { say('订单已创建，尚未收到支付成功的通知。若已付款，稍等片刻再查一次。'); }
+        else { say('订单状态：' + (o.status || '未知')); }
+      })
+      .catch(function () { say('查询接口没接上，请直接查看邮箱或到仓库开一条 issue。', 'is-error'); });
+  }
+  if (btn) btn.addEventListener('click', query);
+  if (input) input.addEventListener('keydown', function (e) { if (e.key === 'Enter') query(); });
+})();
+</script>
+</body>
+</html>
