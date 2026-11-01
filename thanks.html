@@ -24,6 +24,7 @@
   .thanks-status { margin-top: 12px; font-size: 13.5px; color: var(--muted); min-height: 20px; }
   .thanks-status.is-error { color: var(--bad); }
   .thanks-status.is-ok { color: var(--ok); }
+  .thanks-hint { font-size: 12.5px; color: var(--faint); line-height: 1.7; margin-top: 10px; }
 </style>
 </head>
 <body>
@@ -37,9 +38,11 @@
         <label for="tradeNo">订单号（out_trade_no）</label>
         <div class="row">
           <input id="tradeNo" type="text" placeholder="例如 DC20261101103012ab12cd34" autocomplete="off" />
-          <button class="btn btn-outline" type="button" id="queryBtn">查订单</button>
+          <button class="btn btn-outline" type="button" id="queryBtn">查本地记录</button>
+          <button class="btn btn-outline" type="button" id="queryAliBtn">向支付宝核实</button>
         </div>
         <p class="thanks-status" id="queryStatus" role="status"></p>
+        <p class="thanks-hint">「查本地记录」读本站的订单表；「向支付宝核实」直接问支付宝的交易查询接口。支付宝要求以异步通知或主动查询为准，两者都查不到时再开 issue。</p>
       </div>
       <div class="thanks-actions">
         <a class="btn btn-primary" href="index.html">回到首页</a>
@@ -72,7 +75,29 @@
       })
       .catch(function () { say('查询接口没接上，请直接查看邮箱或到仓库开一条 issue。', 'is-error'); });
   }
+  function queryAli() {
+    var no = input.value.trim();
+    if (!no) { say('先填订单号', 'is-error'); return; }
+    say('正在向支付宝核实…');
+    fetch('/api/pay-query', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ out_trade_no: no })
+    })
+      .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, data: d }; }); })
+      .then(function (res) {
+        var d = res.data || {};
+        if (!d.ok) { say('核实未成功：' + (d.error || '未知原因'), 'is-error'); return; }
+        if (d.trade_status === 'TRADE_SUCCESS' || d.trade_status === 'TRADE_FINISHED') {
+          say('支付宝确认：' + d.trade_status + '，金额 ¥' + (d.total_amount || '') + (d.license_key ? '，授权码已生成' : ''), 'is-ok');
+        } else {
+          say('支付宝返回状态：' + d.trade_status + '（WAIT_BUYER_PAY 表示还没付）');
+        }
+      })
+      .catch(function () { say('支付通道尚未开通，无法向支付宝核实；请查看邮箱。', 'is-error'); });
+  }
+  var aliBtn = document.getElementById('queryAliBtn');
   if (btn) btn.addEventListener('click', query);
+  if (aliBtn) aliBtn.addEventListener('click', queryAli);
   if (input) input.addEventListener('keydown', function (e) { if (e.key === 'Enter') query(); });
 })();
 </script>

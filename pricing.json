@@ -1,7 +1,7 @@
 {
   "$schema": "https://diffcycle.dev/pricing/v1",
   "product": "DiffCycle",
-  "version": "0.5",
+  "version": "0.6",
   "updated": "2026-11-01",
   "currency": "CNY",
   "locale": "zh-CN",
@@ -123,19 +123,44 @@
     "provider": "Alipay Vibe Pay",
     "mode": "网页支付（基础收款能力）",
     "status": "preparing",
-    "status_note": "尚未开通：需要支付宝应用 app_id、应用私钥、支付宝公钥、签约入驻，并先完成沙箱测试。",
+    "status_note": "尚未开通：需要支付宝应用 app_id、应用私钥、支付宝公钥、签约入驻，并先完成沙箱测试。官方口径是沙箱与生产完全隔离、无需等待签约即可联调，但沙箱通过不等于可上线，上线前仍需产品签约并用正式商户凭证在生产环境验收。",
     "supported_plan_models": [
       "subscription",
       "one_time"
     ],
     "auto_renewal_supported": false,
-    "auto_renewal_note": "Vibe Pay 的时长包不等于自动续费，因此本页不承诺自动扣款。"
+    "auto_renewal_note": "Vibe Pay 的时长包不等于自动续费，因此本页不承诺自动扣款。",
+    "product_line": "基础收款能力 · AI 网页应用收款",
+    "api": "alipay.trade.page.pay",
+    "product_code": "FAST_INSTANT_TRADE_PAY",
+    "gateway": "https://openapi.alipay.com/gateway.do",
+    "sandbox_gateway": "https://openapi-sandbox.dl.alipaydev.com/gateway.do",
+    "personal_collection_supported": true,
+    "refund_window_months": 12,
+    "notify_retry_schedule": [
+      "4m",
+      "10m",
+      "10m",
+      "1h",
+      "2h",
+      "6h",
+      "15h"
+    ],
+    "notify_ack_body": "success"
   },
   "policies": {
-    "refund": "支付通道开放前不收款，不涉及退款；正式开放后退款规则随通道一并公布。",
+    "refund": "通道开放前不收款，不涉及退款。正式开放后按支付宝网页支付官方规则执行：交易完成后 12 个月内可发起退款，资金原路退回，退款不退还手续费；同一笔退款重提需沿用原退款单号，总退款额不超过买家实付。",
     "privacy": "登记只收集邮箱、所选档位与来源渠道；站点不使用 Cookie 与第三方统计。",
     "contact": "仓库 issue：https://github.com/drake-yuan/diffcycle-site/issues",
-    "students_and_oss": "学生与开源项目：说明用途后可以给长期免费额度。"
+    "students_and_oss": "学生与开源项目：说明用途后可以给长期免费额度。",
+    "renewal": "年付是固定周期的时长包，不自动续费、不自动扣款；连续订阅属另一条产品线，本项目未接入。",
+    "fee": "支付宝费率与结算以开通协议和适用产品说明为准，官方未公布统一费率数字，本站不写具体费率。",
+    "limits": "单笔/单日限额与风控规则以支付宝开通协议与风控提示为准，官方未公布统一数值，本站不写具体限额。",
+    "payment_channels": {
+      "web": "Vibe Pay · 基础收款能力 · AI 网页应用收款（alipay.trade.page.pay）",
+      "app": "Vibe Pay · 基础收款能力 · AI 移动应用收款（alipay.trade.app.pay），本项目只做网页端",
+      "smart_kit": "智能收款套件（即刻收）尚未全面开放，需白名单，本项目未接入"
+    }
   },
   "pricing_notes": {
     "measurement_is_free": "像素级测量在用户本机运行，不限次、不计费。",
