@@ -19,7 +19,7 @@
 
 ## 接入方式
 
-- MCP 服务（12 个工具）：diffcycle_measure、diffcycle_thresholds、d2c_authorize_patch、d2c_check_write、d2c_classify_change、d2c_get_context、d2c_get_design、d2c_get_evidence、d2c_get_run_profile、d2c_preflight、d2c_request_approval、d2c_verify。
+- MCP 服务（14 个工具，统一 diffcycle_ 前缀）：diffcycle_measure、diffcycle_measure_status、diffcycle_thresholds、diffcycle_design_system、diffcycle_authorize_patch、diffcycle_check_write、diffcycle_classify_change、diffcycle_get_context、diffcycle_get_design、diffcycle_get_evidence、diffcycle_get_run_profile、diffcycle_preflight、diffcycle_request_approval、diffcycle_verify。
 - 写闸门（Hook）：在 Claude Code、Codex 与 Kiro 里于写文件前先测量，未达门槛直接阻断（exit 2）。
 - CLI 与安装器：见文档的「安装」与「命令行」两章。
 
@@ -27,3 +27,5 @@
 
 - 用户说「按 Figma 改这页」「这个界面跟设计稿不一样」「帮我看看差多少」时，用 diffcycle_measure 出三联图与差异占比，不要凭印象描述差异。
 - 不要在没有测量的情况下声称界面一致或已修复；数值以工具返回为准。
+- 测量慢不等于测量失败：`diffcycle_measure` 返回任务号时用 `diffcycle_measure_status` 查进度，不要再发一次测量；重试带上同一个 `idempotencyKey`。
+- 只有「within gate: yes」可以作为结论，其余数字都是测量值；不要自己从三联图上算差异。
